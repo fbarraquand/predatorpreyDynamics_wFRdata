@@ -131,12 +131,12 @@ contour(theta_true[1]+r_new,theta_true[2]+g_new,llbis)
 
 # Let's assume we know the max growth rates (most realistic assumption)
 
-gamma = c(0.001,0.01,0.05,0.1,0.5)
+gamma = c(0.1,0.05,0.1,0.5,1,2)
 negll=matrix(0,nrow=100,ncol=101)
 
 par(mfrow=c(2,3))
 for (kg in 1:length(gamma)){
-  D_FR = seq(0.5,20.5,by=0.2)
+  D_FR = seq(0.5,200.5,by=2)
     for (kd in 1:length(D_FR)){
       C_FR = seq(0.05,5,0.05) 
       for (kc in 1:length(C_FR)){
@@ -146,19 +146,96 @@ for (kg in 1:length(gamma)){
     }
   contour(C_FR,D_FR,negll,xlab="C",ylab="D", main=c("Gamma = ",toString(gamma[kg])))
 }
+plot(C_FR,negll[,2])
+
+### Zooming in on C (between 2 and 3)
+par(mfrow=c(2,3))
+for (kg in 1:length(gamma)){
+  D_FR = seq(0.5,200.5,by=2)
+  for (kd in 1:length(D_FR)){
+    C_FR = seq(2.01,3,0.01) 
+    for (kc in 1:length(C_FR)){
+      theta = c(rmax_V,gamma[kg],sqrt(0.05),rmax_P,Q,sqrt(0.05),C_FR[kc],D_FR[kg],sqrt(0.05))
+      negll[kc,kd]=logLik(theta,data)
+    }
+  }
+  contour(C_FR,D_FR,negll,xlab="C",ylab="D", main=c("Gamma = ",toString(gamma[kg])))
+}
+
+plot(C_FR,negll[,2])
+
+plot(C_FR,negll[,100])
 
 ########### Other more realistic profiles #####################################
-
-
-
-
-
-  
-  
+# todo
+###############################################################################   
 
 ### NB Should I normalize everything and get rid of the sigmas? 
 
+############### Working directly with the sum of squares ######################
+RSS=function(theta,y){
+  #### y is the data with n rows and 3 columns // log-abundance data + FR data
+  
+  #### Parameters
+  # theta1 = r 
+  # theta2 = gamma
+  # theta3 = s
+  # theta4 = q 
+  # theta5 = C
+  # theta6 = D
+  # not the same theta
+  
+  n=nrow(y)
+  ll = 0.0 ### Or p_1(a_1|x_1) p(x_1)
+  for (t in 2:n){
+    N_t = exp(y[t-1,1])
+    P_t = exp(y[t-1,2]) 
+    mu1 = y[t-1,1] + theta[1] - log(1+theta[2]*N_t) - y[t-1,3]*N_t/P_t
+    mu2 = y[t-1,2] + theta[3] - log((1+theta[4]*P_t/N_t))
+    mu3 = (theta[5]*N_t)/(theta[6] + N_t)
+    rss=(y[t,1] - mu1)^2+(y[t,2]-mu2)^2+(y[t,3]-mu3)^2
+  }
+  return(rss)
+}
 
+### New theta true
+theta_true  = c(rmax_V,1/K,rmax_P,Q,D,C)
+theta_init = theta_true + rnorm(6,0,sd=0.01)
+p_opt<-optim(theta_init, RSS, y=data,hessian=T)
+p_opt$par
+theta_true
+### Still problems with 
+###  In log(1 + theta[2] * N_t) : NaNs produced
 
+# basic check 
+RSS(theta_true,data)
+rssbis=matrix(0,nrow=10,ncol=10)
+for (i in 1:10){
+  for (j in 1:10){
+    theta_new=theta_true+c(0,0,0,0,0.05*i-0.5,0.5*j-2)
+    rssbis[i,j]=RSS(theta_new,data)
+  }
+}
+contour(rssbis)
+
+# do that with (r,gamma)
+RSS(theta_true,data)
+rssbis=matrix(0,nrow=10,ncol=10)
+r_new=g_new=rep(0,10)
+for (i in 1:10){
+  for (j in 1:10){
+    r_new[i] = 1*i-0.1
+    g_new[j] = 0.2*j-0.9
+    theta_new=theta_true+c(r_new[i],g_new[j],0,0,0,0)
+    rssbis[i,j]=RSS(theta_new,data)
+  }
+}
+contour(theta_true[1]+r_new,theta_true[2]+g_new,llbis)
+
+### The likelihood seems to favor unusually high r and unusally low C
+### We need to check this for other datasets -- longer datasets too...
+
+### + analytic computations in Mathematica or similar 
+### (should be able to work out the RSS derivations with Deriv )
 
 
