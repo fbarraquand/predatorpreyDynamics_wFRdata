@@ -186,14 +186,14 @@ RSS=function(theta,y){
   # not the same theta
   
   n=nrow(y)
-  ll = 0.0 ### Or p_1(a_1|x_1) p(x_1)
+  rss = 0.0 ### Or p_1(a_1|x_1) p(x_1)
   for (t in 2:n){
     N_t = exp(y[t-1,1])
     P_t = exp(y[t-1,2]) 
     mu1 = y[t-1,1] + theta[1] - log(1+theta[2]*N_t) - y[t-1,3]*N_t/P_t
     mu2 = y[t-1,2] + theta[3] - log((1+theta[4]*P_t/N_t))
     mu3 = (theta[5]*N_t)/(theta[6] + N_t)
-    rss=(y[t,1] - mu1)^2+(y[t,2]-mu2)^2+(y[t,3]-mu3)^2
+    rss=rss+(y[t,1] - mu1)^2+(y[t,2]-mu2)^2+(y[t,3]-mu3)^2
   }
   return(rss)
 }
@@ -230,7 +230,7 @@ for (i in 1:10){
     rssbis[i,j]=RSS(theta_new,data)
   }
 }
-contour(theta_true[1]+r_new,theta_true[2]+g_new,llbis)
+contour(theta_true[1]+r_new,theta_true[2]+g_new,rssbis)
 
 ### The likelihood seems to favor unusually high r and unusally low C
 ### We need to check this for other datasets -- longer datasets too...
