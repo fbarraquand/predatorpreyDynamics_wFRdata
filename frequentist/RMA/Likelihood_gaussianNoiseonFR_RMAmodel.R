@@ -1,6 +1,6 @@
 ### FB 13/11/2017 - predator-prey model with noisy functional response data
 ### Writes down the likelihood of the model under the assumption of Gaussian noise on the FR
-### Designed to be the simplest form noise tested first
+### 24/11/2017 Rosenzweig-MacArthur version -- should improve fitting but doesnt seem to 
 
 rm(list=ls())
 graphics.off()
@@ -9,18 +9,18 @@ graphics.off()
 n.years<-100  	# Number of years - 25 first, perhaps use 50 or 100 / worked very well with almost no process error on the real scale
 N1<-1			# Initial pop size
 P1<-0.1
-K<-1			# threshold dd 
+K<-100			# threshold dd 1/K
 beta<-1			# density-dependence exponent
-rmax_V<-2			# Max AVERAGE growth rate (thus not a true max...)
-rmax_P<-0.5
-sigma2.proc<-0.05		# worked well with 0.005
+rmax_V<-2		# Max AVERAGE growth rate (thus not a true max...)
+rmax_P<-(-0.25)	        # Mortality of the predator 		
+sigma2.proc<-0.05	# worked well with 0.005
 # Process sigma on the log-scale, use the Peretti et al. value. 0.005
 
 
 ### FR and predator parameters
 C<-2.5
 D<-1
-Q<-10
+epsilon<-0.1
 
 ### Simulation of data
 #set.seed(42) 
@@ -33,14 +33,14 @@ P[1]<-P1
 FR[1]<-C*N[1]/(D+N[1])
 
 rV<-rnorm(n.years-1,rmax_V,sqrt(sigma2.proc))
-rP<-rnorm(n.years-1,rmax_P,sqrt(sigma2.proc))
+rP<-rnorm(n.years-1,rmax_P,sqrt(0.01))
 FRnoise<-rnorm(n.years,0,sqrt(sigma2.proc))
 
 for (t in 1:(n.years-1)){
  
-  FR[t+1]<-(C*N[t]/(D+N[t])) + FRnoise[t+1]
-  N[t+1]<-N[t]*(exp(rV[t])/(1+(N[t]/K)^beta))*exp(-FR[t]*P[t]/N[t])
-  P[t+1]<-P[t]*exp(rP[t])/(1+P[t]*Q/N[t])
+  FR[t+1]<-max((C*N[t]/(D+N[t])) + FRnoise[t+1],0.0)
+  N[t+1]<-N[t]*(exp(rV[t]-(N[t]/K)^beta -FR[t]*P[t]/N[t]) + 0.01) #+0.01 to maintain the prey pop positive
+  P[t+1]<-P[t]*exp(rP[t] + epsilon*FR[t])
 }
 ## Plotting time series of abundances and FR
 par(mfrow=c(2,2))
@@ -58,10 +58,10 @@ logLik=function(theta,y){
 
 #### Parameters
 # theta1 = r 
-# theta2 = gamma
+# theta2 = gamma = 1/K
 # theta3 = sigma1
-# theta4 = s
-# theta5 = q 
+# theta4 = mu  #mortality
+# theta5 = epsilon
 # theta6 = sigma2
 # theta7 = C
 # theta8 = D
@@ -72,8 +72,9 @@ ll = 0.0 ### Or p_1(a_1|x_1) p(x_1)
 for (t in 2:n){
 N_t = exp(y[t-1,1])
 P_t = exp(y[t-1,2]) 
-mu1 = y[t-1,1] + theta[1] - log(1+theta[2]*N_t) - y[t-1,3]*N_t/P_t
-mu2 = y[t-1,2] + theta[4] - log((1+theta[5]*P_t/N_t))
+mu1 = y[t-1,1] + theta[1] - theta[2]*N_t - y[t-1,3]*N_t/P_t
+### The new DD should remove previous problems with log(1+theta[2]*N_t) 
+mu2 = y[t-1,2] + theta[4] + theta[5]*y[t-1,3]
 mu3 = (theta[7]*N_t)/(theta[8] + N_t)
 #ll= ll + log(dnorm(y[t,1], mu1, theta[3])) +  log(dnorm(y[t,2], mu2, theta[6])) + log(dnorm(y[t,3], mean = mu3, sd = theta[9]))
 # we have log(0) problem
@@ -86,11 +87,12 @@ return(-ll)
 }
 
 ################ Now optimize the LL ###########################################
-theta_start = c(runif(1,0.5,2),runif(1,0.001,5),runif(1,0.1,1),runif(1,0.1,2),runif(1,0.1,5),runif(1,0.1,2),runif(1,0.01,0.1),runif(1,10,100),runif(1,0.1,5))
+theta_start = c(runif(1,0.5,2),runif(1,0.001,5),runif(1,0.1,1),runif(1,0.1,0.5),runif(1,0.1,0.5),runif(1,0.1,2),runif(1,0.01,0.1),runif(1,10,100),runif(1,0.1,5))
 # Put high values for D not C -- previously the reverse was done for bayesian est. (error?)
 # theta_start=rep(1,9) # you never know...
 
 p_opt<-optim(theta_start, logLik, y=data,method="BFGS",hessian=T)
+#warnings(): 44: In dnorm(y[t, 2], mu2, theta[6], log = T) : NaNs produced
 p_opt<-optim(theta_start, logLik, y=data,hessian=T)
 # does not work -- unclear why? Use L-BFGS? 
 library(optimx)
@@ -98,7 +100,7 @@ p_opt<-optimx(theta_start, logLik, y=data,hessian=T)
 ## Always same warnings -> In log(1 + theta[2] * N_t) : NaNs produced
 
 ### Let's try something extreme 
-theta_true  = c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),D,C,sqrt(0.05))
+theta_true  = c(rmax_V,1/K,sqrt(0.05),rmax_P,epsilon,sqrt(0.05),D,C,sqrt(0.05))
 p_opt<-optim(theta_true, logLik, y=data,method="BFGS",hessian=T)
 p_opt$par
 theta_true
@@ -156,7 +158,7 @@ for (kg in 1:length(gamma)){
   for (kd in 1:length(D_FR)){
     C_FR = seq(2.01,3,0.01) 
     for (kc in 1:length(C_FR)){
-      theta = c(rmax_V,gamma[kg],sqrt(0.05),rmax_P,Q,sqrt(0.05),C_FR[kc],D_FR[kg],sqrt(0.05))
+      theta = c(rmax_V,gamma[kg],sqrt(0.05),rmax_P,epsilon,sqrt(0.05),C_FR[kc],D_FR[kg],sqrt(0.05))
       negll[kc,kd]=logLik(theta,data)
     }
   }
@@ -180,8 +182,8 @@ RSS=function(theta,y){
   #### Parameters
   # theta1 = r 
   # theta2 = gamma
-  # theta3 = s
-  # theta4 = q 
+  # theta3 = mu
+  # theta4 = epsilon 
   # theta5 = C
   # theta6 = D
   # not the same theta
@@ -191,8 +193,8 @@ RSS=function(theta,y){
   for (t in 2:n){
     N_t = exp(y[t-1,1])
     P_t = exp(y[t-1,2]) 
-    mu1 = y[t-1,1] + theta[1] - log(1+theta[2]*N_t) - y[t-1,3]*N_t/P_t
-    mu2 = y[t-1,2] + theta[3] - log((1+theta[4]*P_t/N_t))
+    mu1 = y[t-1,1] + theta[1] - theta[2]*N_t - y[t-1,3]*N_t/P_t
+    mu2 = y[t-1,2] + theta[3] + theta[4]*y[t-1,3]
     mu3 = (theta[5]*N_t)/(theta[6] + N_t)
     rss=rss+(y[t,1] - mu1)^2+(y[t,2]-mu2)^2+(y[t,3]-mu3)^2
   }
@@ -200,7 +202,7 @@ RSS=function(theta,y){
 }
 
 ### New theta true
-theta_true  = c(rmax_V,1/K,rmax_P,Q,D,C)
+theta_true  = c(rmax_V,1/K,rmax_P,epsilon,D,C)
 theta_init = theta_true + rnorm(6,0,sd=0.01)
 p_opt<-optim(theta_init, RSS, y=data,hessian=T)
 p_opt$par
@@ -233,10 +235,5 @@ for (i in 1:10){
 }
 contour(theta_true[1]+r_new,theta_true[2]+g_new,rssbis)
 
-### The likelihood seems to favor unusually high r and unusally low C
-### We need to check this for other datasets -- longer datasets too...
-
-### + analytic computations in Mathematica or similar 
-### (should be able to work out the RSS derivations with Deriv )
-
+### 
 
