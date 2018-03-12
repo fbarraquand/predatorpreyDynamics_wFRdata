@@ -72,7 +72,9 @@ ll = 0.0 ### Or p_1(a_1|x_1) p(x_1)
 for (t in 2:n){
 N_t = exp(y[t-1,1])
 P_t = exp(y[t-1,2]) 
-mu1 = y[t-1,1] + theta[1] - theta[2]*N_t - y[t-1,3]*N_t/P_t
+############# Error corrected ########################################
+# mu1 = y[t-1,1] + theta[1] - theta[2]*N_t - y[t-1,3]*N_t/P_t # error
+mu1 = y[t-1,1] + theta[1] - theta[2]*N_t - y[t-1,3]*P_t/N_t # corrected
 ### The new DD should remove previous problems with log(1+theta[2]*N_t) 
 mu2 = y[t-1,2] + theta[4] + theta[5]*y[t-1,3]
 mu3 = (theta[7]*N_t)/(theta[8] + N_t)
@@ -87,7 +89,7 @@ return(-ll)
 }
 
 ################ Now optimize the LL ###########################################
-theta_start = c(runif(1,0.5,2),runif(1,0.001,5),runif(1,0.1,1),runif(1,0.1,0.5),runif(1,0.1,0.5),runif(1,0.1,2),runif(1,0.01,0.1),runif(1,10,100),runif(1,0.1,5))
+theta_start = c(runif(1,0.5,2),runif(1,0.001,5),runif(1,0.1,1),runif(1,0.1,0.5),runif(1,0.1,0.5),runif(1,0.1,2),runif(1,0.01,0.1),runif(1,1,10),runif(1,0.1,5))
 # Put high values for D not C -- previously the reverse was done for bayesian est. (error?)
 # theta_start=rep(1,9) # you never know...
 
@@ -100,10 +102,17 @@ p_opt<-optimx(theta_start, logLik, y=data,hessian=T)
 ## Always same warnings -> In log(1 + theta[2] * N_t) : NaNs produced
 
 ### Let's try something extreme 
-theta_true  = c(rmax_V,1/K,sqrt(0.05),rmax_P,epsilon,sqrt(0.05),D,C,sqrt(0.05))
+theta_true  = c(rmax_V,1/K,sqrt(0.05),rmax_P,epsilon,sqrt(0.05),C,D,sqrt(0.05))
 p_opt<-optim(theta_true, logLik, y=data,method="BFGS",hessian=T)
 p_opt$par
 theta_true
+### approximately good estimates
+
+### Less extreme 
+p_opt<-optim(theta_start, logLik, y=data,method="BFGS",hessian=T)
+p_opt$par
+theta_true
+# OK except for theta[3] = sigma1
 
 ############ Create likelihood profiles ########################################
 
@@ -124,13 +133,14 @@ llbis=matrix(0,nrow=10,ncol=10)
 r_new=g_new=rep(0,10)
 for (i in 1:10){
   for (j in 1:10){
-    r_new[i] = 1*i-0.1
-    g_new[j] = 0.2*j-0.9
+    r_new[i] = 0.1*i-0.5
+    g_new[j] = 0.002*j-0.01
     theta_new=theta_true+c(r_new[i],g_new[j],0,0,0,0,0,0)
     llbis[i,j]=logLik(theta_new,data)
   }
 }
 contour(theta_true[1]+r_new,theta_true[2]+g_new,llbis)
+#### Good!! 
 
 # Let's assume we know the max growth rates (most realistic assumption)
 
@@ -143,8 +153,8 @@ for (kg in 1:length(gamma)){
     for (kd in 1:length(D_FR)){
       C_FR = seq(0.05,5,0.05) 
       for (kc in 1:length(C_FR)){
-       theta = c(rmax_V,gamma[kg],sqrt(0.05),rmax_P,Q,sqrt(0.05),C_FR[kc],D_FR[kg],sqrt(0.05))
-       negll[kc,kd]=logLik(theta,data)
+       theta = c(rmax_V,gamma[kg],sqrt(0.05),rmax_P,epsilon,sqrt(0.05),C_FR[kc],D_FR[kg],sqrt(0.05))
+       negll[kc,kd]=-logLik(theta,data)
       }
     }
   contour(C_FR,D_FR,negll,xlab="C",ylab="D", main=c("Gamma = ",toString(gamma[kg])))
@@ -193,7 +203,9 @@ RSS=function(theta,y){
   for (t in 2:n){
     N_t = exp(y[t-1,1])
     P_t = exp(y[t-1,2]) 
-    mu1 = y[t-1,1] + theta[1] - theta[2]*N_t - y[t-1,3]*N_t/P_t
+    #### Correcting error ##################################################
+    #mu1 = y[t-1,1] + theta[1] - theta[2]*N_t - y[t-1,3]*N_t/P_t # error
+    mu1 = y[t-1,1] + theta[1] - theta[2]*N_t - y[t-1,3]*P_t/N_t # corrected
     mu2 = y[t-1,2] + theta[3] + theta[4]*y[t-1,3]
     mu3 = (theta[5]*N_t)/(theta[6] + N_t)
     rss=rss+(y[t,1] - mu1)^2+(y[t,2]-mu2)^2+(y[t,3]-mu3)^2
@@ -202,24 +214,23 @@ RSS=function(theta,y){
 }
 
 ### New theta true
-theta_true  = c(rmax_V,1/K,rmax_P,epsilon,D,C)
+theta_true  = c(rmax_V,1/K,rmax_P,epsilon,C,D)
 theta_init = theta_true + rnorm(6,0,sd=0.01)
 p_opt<-optim(theta_init, RSS, y=data,hessian=T)
 p_opt$par
 theta_true
-### Still problems with 
-###  In log(1 + theta[2] * N_t) : NaNs produced
 
 # basic check 
 RSS(theta_true,data)
 rssbis=matrix(0,nrow=10,ncol=10)
 for (i in 1:10){
   for (j in 1:10){
-    theta_new=theta_true+c(0,0,0,0,0.05*i-0.5,0.5*j-2)
+    theta_new=theta_true+c(0,0,0,0,0.1*j-0.5,0.5*i-1)
     rssbis[i,j]=RSS(theta_new,data)
   }
 }
-contour(rssbis)
+contour(t(rssbis)) ### should be the correct orientation to have C as X and D as Y
+
 
 # do that with (r,gamma)
 RSS(theta_true,data)
@@ -235,5 +246,5 @@ for (i in 1:10){
 }
 contour(theta_true[1]+r_new,theta_true[2]+g_new,rssbis)
 
-### 
+### contour plots to precise!! 
 
