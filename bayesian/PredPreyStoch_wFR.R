@@ -114,5 +114,16 @@ nt <- 10 # “thinning”
 out <- jags(jags.data, inits, parameters, "ssm.predprey1.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
 print(out, dig = 2)
 
+# Inference for Bugs model at "ssm.predprey1.txt", fit using jags,
+# 3 chains, each with 34000 iterations (first 14000 discarded), n.thin = 10
+# n.sims = 6000 iterations saved
+# mu.vect sd.vect   2.5%    25%    50%    75%  97.5% Rhat n.eff
+# C            0.00    0.01   0.00   0.00   0.00   0.00   0.00 1.43    10
+# D            0.47    0.84   0.00   0.00   0.00   0.89   2.70 2.04     5
+# K_V          0.97    1.01   0.25   0.44   0.65   1.04   4.07 1.04    81
+# Q            9.60    3.31   4.29   7.23   9.17  11.55  16.93 1.00  2600
+
+### Estimation problems here 
+
 # start perhaps fitting simpler pred prey model, without the complex functional response. 
 # Perhaps with a gamma distribution for the FR first. Or a constant. This way we have a simpler model. 
