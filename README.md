@@ -24,4 +24,5 @@ Fits dynamic predator-prey models with (and without) auxillary functional respon
 ### Progress report FB 14/03/2018
 
 * The discrepancy between ``JAGS`` and ``optim`` indeed stems from differences in parameter values (was too much noise, too low C). 
-* We need to now look at the Hessian and make sure the model is identifiable (check Olivier's old paper as well). 
+* Long time series (T=1000, painfully long in JAGS) reveal that the identifiability (identification rather?) improves for the predator-prey model without the FR. Hence perhaps all the models are identifiable in a structural sense (infinite TS) but adding the FR info improves greatly convergence whenever there is limited data. 
+* We need to now look at the Hessian and make sure the model is identifiable (check Olivier's old paper as well). Remember I saw a ridge in the likelihood regarding (r,K) as previously highlighted by Polanski (on the other hand, won't this strongly depend on parameter space -- I had no such problems in Barraquand et al. 2014). Morality: Use frequentist code for identifiability, the point in parameter space previously used + a point in the predator-prey noisy limit cycle region of parameter space, as well as T=1000 for near perfect conditions first. 
