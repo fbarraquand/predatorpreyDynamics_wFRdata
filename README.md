@@ -37,4 +37,4 @@ Fits dynamic predator-prey models with (and without) auxillary functional respon
 
 * There can be change in several orders of magnitude in the eigenvalues (e.g. from $10^3$ to $10^{-2}$). Does this mean I should consider everyting below 2 orders of magnitude from the max to zero? In which case there would not be full rank matrices... Or switch to symbolic computation, but if I can avoid that I'd rather do so... 
 
-
+* NB Important: the fact that the "basic" parameter set is identifiable may be due to the fact that it exhibits fluctuation when noise is added, which in turn might be due to a pair of complex eigenvalues -- dampened oscillations to equilibrium. To check. Although we have r=2 so the basic prey model might exhibit dampening oscillations as well. A Jacobian computation might be really needed!
