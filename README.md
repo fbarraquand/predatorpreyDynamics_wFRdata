@@ -21,3 +21,7 @@ Fits dynamic predator-prey models with (and without) auxillary functional respon
 
 * Next: fits predator-prey with deterministic FR to predator-prey with noisy FR data? Or check what the discrepancy in JAGS might be due to (-> check parameters used). Also improve the contour plots (some have shitty axes). 
 
+### Progress report FB 14/03/2018
+
+* The discrepancy between ``JAGS`` and ``optim`` indeed stems from differences in parameter values (was too much noise, too low C). 
+* We need to now look at the Hessian and make sure the model is identifiable (check Olivier's old paper as well). 
