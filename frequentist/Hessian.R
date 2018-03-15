@@ -226,10 +226,12 @@ print(hessian, dig = 9)
 #revert back
 options(scipen = 0)
 
-eigen(hessian) ## clearly no zeroes there. 
+eigen(hessian) ## clearly no zeroes there? 
 # $values
 # [1]  3.959853e+04  3.758643e+04  3.441184e+04  1.873364e+04  1.861345e+01  4.247310e+00  1.453736e+00
 # [8]  0.000000e+00 -4.407635e-02
+
+# There is however the question of whether this matrix is positive definite. I'm not sure in fact. 
 
 ######## Estimation based on RSS ##################
 
@@ -302,7 +304,7 @@ p_opt<-optim(theta_true,RSS_FRwoutNoise, y=data,hessian=T)
 p_opt$par
 theta_true
 p_opt$hessian
-eigen(p_opt$hessian) ### clearly interesting and non zero? (inluding the last one)
+eigen(p_opt$hessian) ### clearly interesting and non zero? (inluding the last one?)
 # $values
 # [1] 3344.31352989 2000.86370062    1.73515380    0.38035271    0.16121792   -0.00985483
 # $vectors
@@ -313,6 +315,8 @@ eigen(p_opt$hessian) ### clearly interesting and non zero? (inluding the last on
 # [4,]  3.866315e-13  3.783315e-02 -6.257578e-09 -5.249541e-09 -9.992841e-01  1.886142e-08
 # [5,] -4.011429e-02  1.187677e-12  5.917052e-01  7.025929e-01 -1.481861e-08 -3.932418e-01
 # [6,]  1.845706e-02 -1.824998e-12 -4.232994e-01 -1.430688e-01 -1.348010e-08 -8.944318e-01
+
+## The last two parameters may be a little linked? 
 
 theta_init = theta_true + rnorm(6,0,sd=0.05)
 p_opt<-optim(theta_init, RSS, y=data,hessian=T)
@@ -339,9 +343,12 @@ eigen(p_opt$hessian) ### clearly interesting and non zero
 
 ### Computation at the true parameter values
 ### There's of course the question of whether it is better to compute the Hessian
-### for the true param values or at the MLE (which might be slightly different on a finite time series)
+### for the true param values or at the MLE (which might be slightly different on a finite time series). 
 
-### Use other algorithm to compute at the true value
+### In Gimenez et al. Animal Biodiversity and Conservation 27.1 (2004) They use the MLE.
+### But for a theoretical work, what should we use? 
+
+### Use other algorithm to compute the Hessian exactly at the true value
 library("numDeriv")
 
 theta_true  = c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C,D,sqrt(0.05))
@@ -409,10 +416,20 @@ eigen(hessian_RSS_thetaTrue_FRwoutNoise)
 # [6,]  1.726023e-02  6.557340e-14  3.018285e-01  2.407676e-01  1.880481e-11  9.222975e-01
 
 ### Looks much better -- the last eigenvalue is fairly weak compared to the others though
-### The last eigenvector suggests a linkage between the last two elements. 
+### The last eigenvector suggests a linkage between the last two elements 
+### Keep in mind that because these elements belong to the null space eigenvector, they indicate linkage. 
 ### These are C and D, which makes sense based on previous results. 
 
 ### Clearly that's a different value from the one that we get at MLE, though there are some similarities
 ### in the spectra of the Hessian matrix at theta_true vs theta_hat. 
+
+### NB there are some models in the literature that may not be identifiable 
+### I'm curious about this one for instance, since fitted on only one compartment
+### Ives et al. (2008). High-amplitude fluctuations and alternative dynamical states of midges in Lake Myvatn. Nature, 452(7183), 84.
+#####################################################################################################################################
+
+########################### Profiles of the likelihood near theta_true ##################################
+
+
 
 
