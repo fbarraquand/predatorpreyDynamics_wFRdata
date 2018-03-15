@@ -232,6 +232,7 @@ eigen(hessian) ## clearly no zeroes there?
 # [8]  0.000000e+00 -4.407635e-02
 
 # There is however the question of whether this matrix is positive definite. I'm not sure in fact. 
+# The last eigenvalue is negative. On the other hand it is very small so we can consider it zero. 
 
 ######## Estimation based on RSS ##################
 
@@ -316,7 +317,7 @@ eigen(p_opt$hessian) ### clearly interesting and non zero? (inluding the last on
 # [5,] -4.011429e-02  1.187677e-12  5.917052e-01  7.025929e-01 -1.481861e-08 -3.932418e-01
 # [6,]  1.845706e-02 -1.824998e-12 -4.232994e-01 -1.430688e-01 -1.348010e-08 -8.944318e-01
 
-## The last two parameters may be a little linked? 
+## The last two parameters may be a little linked? Negative eigenvalue but this may in fact be zero? 
 
 theta_init = theta_true + rnorm(6,0,sd=0.05)
 p_opt<-optim(theta_init, RSS, y=data,hessian=T)
@@ -379,7 +380,7 @@ eigen_FRwoutNoise=eigen(hessian_thetaTrue_FRwoutNoise)
 #eigenvector associated with near-zero eigenvalue
 eigen_FRwoutNoise$vectors[,9]
 ### Not like Gimenez et al. 2004 -- only the last value (sigma3) has a large eigenvector
-### does this mean it canot be estimated?? 
+### does this mean it canot be estimated?? Though perhaps the penultimate as well. 
 
 ################# Redo the same analysis with sum of squares #################
 
@@ -419,6 +420,8 @@ eigen(hessian_RSS_thetaTrue_FRwoutNoise)
 ### The last eigenvector suggests a linkage between the last two elements 
 ### Keep in mind that because these elements belong to the null space eigenvector, they indicate linkage. 
 ### These are C and D, which makes sense based on previous results. 
+
+### Or can we use the different orders of magnitude for the eigenvalues here? 
 
 ### Clearly that's a different value from the one that we get at MLE, though there are some similarities
 ### in the spectra of the Hessian matrix at theta_true vs theta_hat. 

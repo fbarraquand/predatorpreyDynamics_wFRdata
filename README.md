@@ -29,10 +29,12 @@ Fits dynamic predator-prey models with (and without) auxillary functional respon
 
 * We need to now look at the Hessian and make sure the model is identifiable (check Olivier's old paper as well). Remember I saw a ridge in the likelihood regarding (r,K) as previously highlighted by Polanski (on the other hand, won't this strongly depend on parameter space -- I had no such problems in Barraquand et al. 2014). Morality: Use frequentist code for identifiability, the point in parameter space previously used + a point in the predator-prey noisy limit cycle region of parameter space, as well as T=1000 for near perfect conditions first. 
 
-### Progress report FB 14/03/2018
+### Progress report FB 15/03/2018
 
 * Using the point in parameter space previously used, and T=1000, no identifiability problems even with the model without noisy functional response/with deterministic FR (see ``frequentist/Hessian.R``). As evaluated through the rank of the Hessian. 
 
-* I'm unclear as to whether the Hessian matrices are always positive definite, which is important as well for concavity! 
+* I'm unclear as to whether the Hessian matrices are always positive definite (for T=1000), which is important as well for concavity! (some eigenvalues can be negative, but always when these are close to zero). 
+
+* There can be change in several orders of magnitude in the eigenvalues (e.g. from $10^3$ to $10^{-2}$). Does this mean I should consider everyting below 2 orders of magnitude from the max to zero? In which case there would not be full rank matrices... Or switch to symbolic computation, but if I can avoid that I'd rather do so... 
 
 
