@@ -390,6 +390,7 @@ sqrt(diag(solve(hessian_thetaTrue)))
 # 
 
 ############## Perhaps using the TRUE value only makes sense when T=1000!!! so that we are in near-perfect conditions #####
+theta_true  = c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C,D)
 
 LL_FRwoutNoise = function(theta){
   return(logLik_FRwoutNoise(theta,data))
@@ -397,11 +398,8 @@ LL_FRwoutNoise = function(theta){
 
 hessian_thetaTrue_FRwoutNoise=hessian(LL_FRwoutNoise,theta_true)
 eigen(hessian_thetaTrue_FRwoutNoise)
-# $values
-# [1]  4.961730e+03  3.223732e+03  2.845729e+03  1.981879e+03  1.519377e+00  1.440341e-01 -3.552714e-15 -2.863781e-01
-# [9] -3.137253e+01
 
-######### Previously for T=1000
+######### Previously for T=1000 -- but we had an error 
 # $values
 # [1]  4.429418e+04  3.966980e+04  3.419146e+04  1.997603e+04  2.326595e+01  6.332812e+00
 # [7]  1.882450e+00  1.473978e-02 -4.179847e-23

@@ -279,15 +279,51 @@ eigen(p_opt$hessian) ### clearly interesting and non zero
 ################### Now for the model where the FR is specified without the noise #################
 ###################################################################################################
 # Revert back to full theta_true with 9 elements
-theta_true  = c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C,D,sqrt(0.05))
+# Nope!! There are only 8 elements here, no sigma3!!
+
+theta_true  = c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C,D)
 p_opt<-optim(theta_true, logLik_FRwoutNoise, y=data,hessian=T)
 p_opt$par
+# [1]  1.9914255  0.9680671  0.2224996  0.5107744 10.4210424  0.2310457  3.2480513  1.8051012
 theta_true
+# [1]  2.0000000  1.0000000  0.2236068  0.5000000 10.0000000  0.2236068  2.5000000  1.0000000
 p_opt$hessian
+# [,1]          [,2]          [,3]          [,4]          [,5]          [,6]          [,7]          [,8]
+# [1,]  2.017933e+04 -1.744166e+04  1.334904e+02 -1.776357e-09  0.000000e+00  3.552714e-09 -9.778635e+02  4.602678e+02
+# [2,] -1.744166e+04  1.508817e+04 -1.271656e+02 -3.552714e-09 -2.309264e-08 -3.552714e-09  8.390894e+02 -3.920669e+02
+# [3,]  1.334904e+02 -1.271656e+02  4.062105e+04 -1.065814e-08  1.421085e-08  2.131628e-08 -9.458752e+00  5.322839e+00
+# [4,] -1.776357e-09 -3.552714e-09 -1.065814e-08  1.871413e+04 -7.040348e+02  2.880262e+01  0.000000e+00 -1.598721e-08
+# [5,]  0.000000e+00 -2.309264e-08  1.421085e-08 -7.040348e+02  2.795303e+01 -2.714926e+00  0.000000e+00 -1.776357e-08
+# [6,]  3.552714e-09 -3.552714e-09  2.131628e-08  2.880262e+01 -2.714926e+00  3.761812e+04  3.552714e-09  3.552714e-09
+# [7,] -9.778635e+02  8.390894e+02 -9.458752e+00  0.000000e+00  0.000000e+00  3.552714e-09  5.381699e+01 -2.630698e+01
+# [8,]  4.602678e+02 -3.920669e+02  5.322839e+00 -1.598721e-08 -1.776357e-08  3.552714e-09 -2.630698e+01  1.318995e+01
 eigen(p_opt$hessian)
+# $values
+# [1] 40627.4553092 37618.1668741 35311.2566499 18740.5788017    14.9681016     2.1552563     1.4647539    -0.2764503
+# 
+# $vectors
+# [,1]          [,2]          [,3]          [,4]          [,5]          [,6]          [,7]          [,8]
+# [1,] -2.609296e-02 -1.182946e-12  7.553842e-01 -1.117742e-13  4.023732e-01  4.688183e-01  9.838325e-09 -2.168389e-01
+# [2,]  2.284980e-02  1.033504e-12 -6.531189e-01 -1.290197e-13  5.113473e-01  5.015502e-01  1.072476e-08 -2.447141e-01
+# [3,] -9.993972e-01  7.189136e-12 -3.471459e-02  5.128058e-13  7.714872e-05  1.989578e-04  3.735806e-12 -9.823869e-05
+# [4,]  4.875137e-13 -1.527377e-03  4.445520e-14  9.992918e-01 -5.565064e-11 -6.339617e-10  3.759676e-02  2.314851e-10
+# [5,] -3.705045e-13  1.008307e-04  4.041092e-13 -3.759665e-02 -1.491911e-09 -1.685328e-08  9.992930e-01  6.134774e-09
+# [6,] -7.131091e-12 -9.999988e-01 -1.818651e-12 -1.530088e-03 -3.962634e-14 -7.965266e-13  4.333509e-05  1.493318e-13
+# [7,]  1.334819e-03 -4.242448e-14 -3.649754e-02  9.164045e-16 -6.113728e-01  7.270867e-01  9.445264e-09  3.102167e-01
+# [8,] -6.481256e-04 -1.180791e-13  1.712617e-02 -8.180576e-13  4.503811e-01 -1.299384e-03 -4.829758e-09  8.926710e-01
 
 ######### Estimation starting away from MLE ########
-theta_init = theta_true + rnorm(9,0,sd=0.05)
+theta_init = theta_true + rnorm(8,0,sd=0.05)
+p_opt<-optim(theta_init, logLik_FRwoutNoise, y=data,hessian=T)
+p_opt$par
+theta_true
+theta_init
+p_opt$hessian
+eigen(p_opt$hessian)
+#$values
+#[1]  4.013941e+04  3.727161e+04  3.536148e+04  1.867194e+04  1.933835e+01  4.327331e+00  1.533097e+00 -4.063515e-02
+### Seems better starting a little further away. May be need to be repeated
+theta_init = theta_true + rnorm(8,0,sd=0.05)
 p_opt<-optim(theta_init, logLik_FRwoutNoise, y=data,hessian=T)
 p_opt$par
 theta_true
@@ -295,9 +331,9 @@ theta_init
 p_opt$hessian
 eigen(p_opt$hessian)
 # $values
-# [1] 4.014639e+04 3.728309e+04 3.512972e+04 1.867364e+04 2.195517e+01 5.424323e+00 1.465820e+00 4.758790e-02
-# [9] 0.000000e+00
-
+# [1] 40942.1328803 36579.3709513 33872.4695387 18511.1139219    19.6803090     2.9133301     1.2436616    -0.2908425
+### Seems like quite of bit of these estimates of last eigenvalue are negative. 
+diag(solve(p_opt$hessian)) ### produces a number of negative variance estimates. 
 
 ######## Estimation from RSS ################
 theta_true  = c(rmax_V,1/K,rmax_P,Q,C,D)
@@ -338,7 +374,21 @@ eigen(p_opt$hessian) ### clearly interesting and non zero
 # [5,]  1.177811e-13 -1.195932e-12 -9.298648e-01  3.679013e-01 -4.540579e-12 -1.617067e-10
 # [6,] -4.160374e-12  5.543679e-13  3.679013e-01  9.298648e-01 -1.619357e-11 -4.231339e-10
 
+# $values
+# [1] 3288.9438361 2000.8565182 1730.1249428    8.8419892    0.6927461    0.1618371
+# 
+# $vectors
+# [,1]          [,2]          [,3]          [,4]          [,5]          [,6]
+# [1,]  7.793633e-01 -2.303427e-12  3.370507e-12 -5.139319e-10 -6.265723e-01 -6.975312e-09
+# [2,] -6.265723e-01 -4.417751e-12 -2.509825e-13 -6.387047e-10 -7.793633e-01 -8.678396e-09
+# [3,]  9.214957e-13 -9.992859e-01 -2.733869e-11 -3.403855e-11 -4.158298e-10  3.778575e-02
+# [4,] -1.376074e-12  3.778575e-02 -9.480527e-12 -9.308575e-10 -1.112639e-08  9.992859e-01
+# [5,]  2.716018e-12  2.550093e-11 -9.299939e-01  3.675749e-01 -3.031194e-10  3.326169e-10
+# [6,] -7.025175e-13 -8.833045e-12  3.675749e-01  9.299939e-01 -7.617032e-10  8.701316e-10
 
+#### some percentage has negative eigenvalues but way less than before with the likelihood I think
+
+solve(p_opt$hessian)
 
 ################################ Computation of Hessian #######################################################
 
@@ -360,10 +410,17 @@ LL(theta_true)
 
 hessian_thetaTrue=hessian(LL,theta_true)
 eigen(hessian_thetaTrue)
+## SD error
+sqrt(diag(solve(hessian_thetaTrue)))
+#[1] 0.243049234 0.288849849 0.005040121 0.028748093 0.728317339 0.004755960 0.043872686 0.110662255 0.005165725
+
 #$values
 # [1] 44294.175086 39378.550751 37848.716366 34111.484789 19976.028177 16277.744431    70.872841
 # [8]     7.018634     1.882450
 # 
+
+### Removing last parameter for test with LL_FRwoutNoise
+theta_true  = c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C,D)
 
 LL_FRwoutNoise = function(theta){
   return(logLik_FRwoutNoise(theta,data))
@@ -373,14 +430,17 @@ hessian_thetaTrue_FRwoutNoise=hessian(LL_FRwoutNoise,theta_true)
 eigen(hessian_thetaTrue_FRwoutNoise)
 
 # $values
+# [1] 4.429418e+04 3.966980e+04 3.419146e+04 1.997603e+04 2.326595e+01 6.332812e+00 1.882450e+00 1.473978e-02
+### Still a question of whether the last one is positive or not... 
+
+# Previously we had an error changing these $values
 # [1]  4.429418e+04  3.966980e+04  3.419146e+04  1.997603e+04  2.326595e+01  6.332812e+00
 # [7]  1.882450e+00  1.473978e-02 -4.179847e-23
 
 eigen_FRwoutNoise=eigen(hessian_thetaTrue_FRwoutNoise)
 #eigenvector associated with near-zero eigenvalue
-eigen_FRwoutNoise$vectors[,9]
-### Not like Gimenez et al. 2004 -- only the last value (sigma3) has a large eigenvector
-### does this mean it canot be estimated?? Though perhaps the penultimate as well. 
+eigen_FRwoutNoise$vectors[,8]
+#largest link between C and D. 
 
 ################# Redo the same analysis with sum of squares #################
 
