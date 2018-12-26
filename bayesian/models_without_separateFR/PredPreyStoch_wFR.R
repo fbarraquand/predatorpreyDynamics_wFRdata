@@ -1,5 +1,7 @@
 ### F. Barraquand 21/04/2015 - Code for analyzing noisy predator-prey system (incl. noise on the functional response) 
 ### Predator prey-only, but no fit of functional response (28/04/2015)
+### Correction predator density multiplication 26/12/2018
+### Corrected error with *K_V instead of /K_V 26/12/2018
 
 # Looks like the FR parameters are the most difficult to estimate indirectly, which is interesting for a 
 # joint model fit. 
@@ -37,7 +39,7 @@ rV<-rnorm(n.years-1,rmax_V,sqrt(sigma2.proc))
 rP<-rnorm(n.years-1,rmax_P,sqrt(sigma2.proc))
 for (t in 1:(n.years-1)){
   
-  N[t+1]<-N[t]*(exp(rV[t])/(1+(N[t]/K)^beta))*exp(-C/(D+N[t]))
+  N[t+1]<-N[t]*(exp(rV[t])/(1+(N[t]/K)^beta))*exp(-C*P[t]/(D+N[t]))
   P[t+1]<-P[t]*exp(rP[t])/(1+P[t]*Q/N[t])
 }
 ## Plotting time series
@@ -82,7 +84,7 @@ cat("
     
     
     logN[t+1] ~ dnorm(logNupdate[t],tau_V)
-    logNupdate[t] <- logN[t] + r_V -log(1+N[t]*K_V) -C/(D+N[t])
+    logNupdate[t] <- logN[t] + r_V -log(1+N[t]/K_V) -C*exp(logP[t])/(D+N[t])
     N[t]<-exp(logN[t])
     # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working
     logP[t+1]~ dnorm(logPupdate[t],tau_P)
@@ -105,25 +107,21 @@ parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D","logN","logP")
 
 # MCMC settings
 nc <- 3 #number of chains
-nb <- 14000 # “burn in”
+nb <- 10000 # “burn in”
 #ni <- 14000# “number of iterations” # that's for a symmetric distrib...
-ni<-34000
+ni<-20000 #34000
 nt <- 10 # “thinning”
 
 # run model
 out <- jags(jags.data, inits, parameters, "ssm.predprey1.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
 print(out, dig = 2)
-
+# 
 # Inference for Bugs model at "ssm.predprey1.txt", fit using jags,
-# 3 chains, each with 34000 iterations (first 14000 discarded), n.thin = 10
-# n.sims = 6000 iterations saved
-# mu.vect sd.vect   2.5%    25%    50%    75%  97.5% Rhat n.eff
-# C            0.00    0.01   0.00   0.00   0.00   0.00   0.00 1.43    10
-# D            0.47    0.84   0.00   0.00   0.00   0.89   2.70 2.04     5
-# K_V          0.97    1.01   0.25   0.44   0.65   1.04   4.07 1.04    81
-# Q            9.60    3.31   4.29   7.23   9.17  11.55  16.93 1.00  2600
+# 3 chains, each with 20000 iterations (first 10000 discarded), n.thin = 10
+# n.sims = 3000 iterations saved
+# #           mu.vect sd.vect   2.5%    25%    50%    75%  97.5% Rhat n.eff
+# C            0.00    0.01   0.00   0.00   0.00   0.00   0.02 4.07     3
+# D            0.00    0.03   0.00   0.00   0.00   0.00   0.00 1.27    11
+# K_V          2.18    1.30   0.50   1.28   1.89   2.77   5.62 1.01   390
+# Q            9.97    3.48   4.40   7.51   9.53  11.89  17.63 1.00  3000
 
-### Estimation problems here 
-
-# start perhaps fitting simpler pred prey model, without the complex functional response. 
-# Perhaps with a gamma distribution for the FR first. Or a constant. This way we have a simpler model. 

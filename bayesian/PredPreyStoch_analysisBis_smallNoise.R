@@ -23,8 +23,9 @@
 
 rm(list=ls())
 graphics.off()
+.libPaths("/home/frederic/myRpackages/")
 
-library("R2jags")      # Load R2jags package
+library("R2jags")
 #library("modeest") #not needed
 
 ### Parameters for simulation of Hassell model

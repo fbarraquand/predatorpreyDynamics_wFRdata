@@ -1,5 +1,7 @@
 ### F. Barraquand 21/04/2015 - Code for analyzing noisy predator-prey system (incl. noise on the functional response) 
 ### Predator prey-only, but no fit of functional response (28/04/2015)
+### Correction predator density multiplication -- 26/12/2018
+### New priors for C and B -- 26/12/2018
 
 # Looks like the FR parameters are the most difficult to estimate indirectly, which is interesting for a 
 # joint model fit. 
@@ -10,7 +12,7 @@ rm(list=ls())
 graphics.off()
 
 library("R2jags")      # Load R2jags package
-#library("modeest")
+library("modeest")
 
 ### Parameters for simulation of Hassell model
 
@@ -21,9 +23,9 @@ K<-1			# threshold dd
 beta<-1			# density-dependence exponent
 rmax_V<-2			# Max AVERAGE growth rate (thus not a true max...)
 rmax_P<-0.5
-sigma2.proc<-0.05		# Process sigma on the log-scale
+sigma2.proc<-0.05 #1		# Process sigma on the log-scale
 
-C<-2.5
+C<-2.5 #0.5
 D<-1
 Q<-10
 
@@ -37,7 +39,7 @@ rV<-rnorm(n.years-1,rmax_V,sqrt(sigma2.proc))
 rP<-rnorm(n.years-1,rmax_P,sqrt(sigma2.proc))
 for (t in 1:(n.years-1)){
   
-  N[t+1]<-N[t]*(exp(rV[t])/(1+(N[t]/K)^beta))*exp(-C/(D+N[t]))
+  N[t+1]<-N[t]*(exp(rV[t])/(1+(N[t]/K)^beta))*exp(-C*P[t]/(D+N[t]))
   P[t+1]<-P[t]*exp(rP[t])/(1+P[t]*Q/N[t])
 }
 ## Plotting time series
@@ -71,19 +73,20 @@ cat("
     tau_P<-pow(sigma_P,-2)
     
     #Priors predation parameters 
-    C~dgamma(.01,.01) # 
-    D~dgamma(.01,.01)
-    # check model Leslie to see how she specified priors...
+    logC ~ dnorm(0,0.1) #C~dgamma(.01,.01)
+    logD ~ dnorm(0,0.1) #D~gamma(.01,.01)
+    C<-exp(logC)
+    D<-exp(logD)
 
     # Likelihood
     # state process
 
     for (t in 1:(T-1)){    
     
-    
     logN[t+1] ~ dnorm(logNupdate[t],tau_V)
-    logNupdate[t] <- logN[t] + r_V -log(1+N[t]*K_V) -C/(D+N[t])
+    logNupdate[t] <- logN[t] + r_V -log(1+N[t]/K_V) -C*exp(logP[t])/(D+N[t])
     N[t]<-exp(logN[t])
+
     # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working
     logP[t+1]~ dnorm(logPupdate[t],tau_P)
     logPupdate[t] <- logP[t] + r_P - log(1+exp(logP[t])*Q/exp(logN[t]) )  
@@ -97,17 +100,17 @@ sink()
 
 # Initial values
 inits <- function () {
-  list(sigma_V=runif(1,0.1,2), sigma_P=runif(1,0.1,2), r_V=runif(1,0.1,2),r_P=runif(1,0.1,2), K_V=runif(1,0.2,10), Q=runif(1,0,5),C=runif(1,10,100),D=runif(1,0.01,0.1))}
-
+  list(sigma_V=runif(1,0.1,2), sigma_P=runif(1,0.1,2), r_V=runif(1,0.1,2),r_P=runif(1,0.1,2), K_V=runif(1,0.2,10), Q=runif(1,0,5),logC=rnorm(1,0,1),logD=rnorm(1,0,1))}
+#C=runif(1,10,100),D=runif(1,0.01,0.1)
 
 # Parameters monitored
-parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D","logN","logP")
+parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","logC","logD","logN","logP")
 
 # MCMC settings
 nc <- 3 #number of chains
-nb <- 14000 # “burn in”
+nb <- 10000 # “burn in”
 #ni <- 14000# “number of iterations” # that's for a symmetric distrib...
-ni<-34000
+ni<-20000 #34000
 nt <- 10 # “thinning”
 
 # run model
@@ -115,12 +118,42 @@ out <- jags(jags.data, inits, parameters, "ssm.predprey1.txt", n.chains=nc, n.th
 print(out, dig = 2)
 
 # Inference for Bugs model at "ssm.predprey1.txt", fit using jags,
-# 3 chains, each with 34000 iterations (first 14000 discarded), n.thin = 10
-# n.sims = 6000 iterations saved
+# 3 chains, each with 20000 iterations (first 10000 discarded), n.thin = 10
+# n.sims = 3000 iterations saved
 # mu.vect sd.vect   2.5%    25%    50%    75%  97.5% Rhat n.eff
-# C            2.18    4.11   0.00   0.00   0.14   2.34  15.08 1.47     9
-# D            1.24    1.95   0.00   0.00   0.00   2.27   6.47 1.19    15
-# K_V          0.99    1.71   0.20   0.21   0.25   0.72   6.75 2.01     5
-# Q           10.17    2.29   6.22   8.57   9.94  11.57  15.15 1.00  6000
+# K_V          1.37    0.68   0.33   0.89   1.26   1.74   2.99 1.06    55
+# Q           12.37    2.89   7.63  10.29  12.09  14.07  19.00 1.01   530
+# logC        -0.21    0.81  -2.04  -0.72  -0.11   0.40   1.12 1.00   690
+# logD         0.04    0.97  -1.91  -0.60   0.04   0.70   1.93 1.00   710
+# r_P          0.56    0.10   0.38   0.49   0.55   0.62   0.77 1.01   600
+# r_V          1.80    0.46   1.10   1.48   1.75   2.03   2.95 1.05    56
+# sigma2_P     0.04    0.01   0.03   0.04   0.04   0.04   0.05 1.00  3000
+# sigma2_V     0.06    0.01   0.04   0.05   0.06   0.06   0.08 1.00  2700
+# deviance   -29.59    3.79 -34.79 -32.35 -30.36 -27.60 -20.38 1.00   620
+out$BUGSoutput$sims.list$logC
+out$BUGSoutput$sims.list$logD
 
-### Estimation problems here 
+# comparing mean values of C and D
+C
+D
+exp(out$BUGSoutput$mean$logC) ## Not the same thing
+exp(out$BUGSoutput$mean$logD)
+#OK!
+
+### --- WITH dnorm(1,0.1) priors ---
+# Inference for Bugs model at "ssm.predprey1.txt", fit using jags,
+# 3 chains, each with 20000 iterations (first 10000 discarded), n.thin = 10
+# n.sims = 3000 iterations saved
+# mu.vect sd.vect   2.5%    25%    50%    75%  97.5% Rhat n.eff
+# K_V          1.49    0.65   0.52   1.01   1.43   1.87   3.00 1.02   210
+# Q           12.47    2.89   7.57  10.37  12.28  14.23  18.73 1.00  2500
+# logC        -1.45    2.35  -6.71  -2.85  -1.11   0.20   2.50 1.00  3000
+# logD         0.45    3.15  -6.00  -1.62   0.50   2.56   6.65 1.00  3000
+# > C
+# [1] 2.5
+# > D
+# [1] 1
+# > exp(out$BUGSoutput$mean$logC) ## Not the same thing
+# [1] 0.2341679
+# > exp(out$BUGSoutput$mean$logD)
+# [1] 1.57264
