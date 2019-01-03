@@ -1,6 +1,7 @@
 ### F. Barraquand 21/04/2015 - Code for analyzing noisy predator-prey system (incl. noise on the functional response)
 ### Updated 01/06/2017. 
 ### Case with "small noise" on the functional response
+### FB 03/01/2019 Added plots for the paired posterior distributions
 
 ### Log of previous edits to other versions ######################################################################################
 
@@ -254,6 +255,42 @@ print(out,dig=2) # to compare deviance, DIC - check also parameter values.
 # 01/06/2017 // Olivier says DIC is crap in this (and other?) context, avoid this...  
 plot(as.mcmc(out2)) 
 plot(as.mcmc(out)) 
+
+### plot densities
+library(mcmcplots)
+denplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D"))
+denplot(out2,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D"))
+
+### Trace plots
+traplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D"))
+traplot(out2,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D"))
+
+### Plot pair posterior densities
+postsamples=cbind(out$BUGSoutput$sims.list$r_V,
+out$BUGSoutput$sims.list$K_V,
+out$BUGSoutput$sims.list$r_P,
+out$BUGSoutput$sims.list$Q,
+out$BUGSoutput$sims.list$C,
+out$BUGSoutput$sims.list$D)
+png(file="PairPosteriorPlot_withFRdata.png", width = 1200, height = 1200,res=300)
+pairs(postsamples,c("r_V","K_V","r_P","Q","C","D"))
+dev.off()
+
+postsamples2=cbind(out2$BUGSoutput$sims.list$r_V,
+                  out2$BUGSoutput$sims.list$K_V,
+                  out2$BUGSoutput$sims.list$r_P,
+                  out2$BUGSoutput$sims.list$Q,
+                  out2$BUGSoutput$sims.list$C,
+                  out2$BUGSoutput$sims.list$D)
+png(file="PairPosteriorPlot_withoutFRdata.png", width = 1200, height = 1200, res=300)
+pairs(postsamples2,c("r_V","K_V","r_P","Q","C","D"))
+dev.off()
+
+pdf(file="PairCorrelPosteriorPlot.pdf",width = 4,height = 8)
+par(mfrow=c(2,1))
+parcorplot(out,parms = c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D"))
+parcorplot(out2,parms = c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D"))
+dev.off()
 
 # Output summary statistics
 jags.sum2<-out2$BUGSoutput$summary
