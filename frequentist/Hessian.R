@@ -231,7 +231,8 @@ eigen(hessian) ## clearly no zeroes there?
 # [1]  3.959853e+04  3.758643e+04  3.441184e+04  1.873364e+04  1.861345e+01  4.247310e+00  1.453736e+00
 # [8]  0.000000e+00 -4.407635e-02
 
-# There is however the question of whether this matrix is positive definite. I'm not sure in fact. 
+# There is however the question of whether this matrix is positive definite. 
+# (which happens for the Hessian when all eigenvalues are positive) -> I'm not sure in fact. 
 # The last eigenvalue is negative. On the other hand it is very small so we can consider it zero. 
 
 ######## Estimation based on RSS ##################
@@ -243,7 +244,7 @@ p_opt$par
 theta_true
 p_opt$hessian
 eigen(p_opt$hessian) ### clearly interesting and non zero
-$values
+# $values
 # [1] 3334.2367985 2000.8569587 1736.6593414    8.9622937    1.4761840    0.1603394
 # 
 # $vectors
@@ -334,6 +335,8 @@ eigen(p_opt$hessian)
 # [1] 40942.1328803 36579.3709513 33872.4695387 18511.1139219    19.6803090     2.9133301     1.2436616    -0.2908425
 ### Seems like quite of bit of these estimates of last eigenvalue are negative. 
 diag(solve(p_opt$hessian)) ### produces a number of negative variance estimates. 
+## Beware that we use -LL, so Hessian = observed FIM (Fisher Information Matrix)
+## Loop over datasets to obtain the true, expected FIM?
 
 ######## Estimation from RSS ################
 theta_true  = c(rmax_V,1/K,rmax_P,Q,C,D)
@@ -433,6 +436,13 @@ eigen(hessian_thetaTrue_FRwoutNoise)
 # [1] 4.429418e+04 3.966980e+04 3.419146e+04 1.997603e+04 2.326595e+01 6.332812e+00 1.882450e+00 1.473978e-02
 ### Still a question of whether the last one is positive or not... 
 
+### Using Viallefond et al.'s criteria
+lambda1 = max(eigen(hessian_thetaTrue_FRwoutNoise)$values)
+q = 8
+eps = 10^(-9)
+eigen(hessian_thetaTrue_FRwoutNoise)$values>q*lambda1*eps
+# TRUE here
+
 # Previously we had an error changing these $values
 # [1]  4.429418e+04  3.966980e+04  3.419146e+04  1.997603e+04  2.326595e+01  6.332812e+00
 # [7]  1.882450e+00  1.473978e-02 -4.179847e-23
@@ -440,7 +450,7 @@ eigen(hessian_thetaTrue_FRwoutNoise)
 eigen_FRwoutNoise=eigen(hessian_thetaTrue_FRwoutNoise)
 #eigenvector associated with near-zero eigenvalue
 eigen_FRwoutNoise$vectors[,8]
-#largest link between C and D. 
+#largest link between C and D. Or is this correct? -> what's the new basis? 
 
 ################# Redo the same analysis with sum of squares #################
 
@@ -476,9 +486,16 @@ eigen(hessian_RSS_thetaTrue_FRwoutNoise)
 # [5,] -4.182289e-02 -1.298747e-15 -4.654567e-01 -8.059012e-01 -8.139938e-12  3.634889e-01
 # [6,]  1.726023e-02  6.557340e-14  3.018285e-01  2.407676e-01  1.880481e-11  9.222975e-01
 
+q = 6
+lambda1 = max(eigen(hessian_RSS_thetaTrue_FRwoutNoise)$values)
+eigen(hessian_RSS_thetaTrue_FRwoutNoise)$values>q*lambda1*eps
+## Compare to singular value decomposition
+eigen(hessian_RSS_thetaTrue_FRwoutNoise)$values
+svd(hessian_RSS_thetaTrue_FRwoutNoise)$d
+
 ### Looks much better -- the last eigenvalue is fairly weak compared to the others though
 ### The last eigenvector suggests a linkage between the last two elements 
-### Keep in mind that because these elements belong to the null space eigenvector, they indicate linkage. 
+### Keep in mind that it is because these elements belong to the "null" space eigenvector that they indicate linkage. 
 ### These are C and D, which makes sense based on previous results. 
 
 ### Or can we use the different orders of magnitude for the eigenvalues here? 
