@@ -228,12 +228,30 @@ options(scipen = 0)
 
 eigen(hessian) ## clearly no zeroes there? 
 # $values
-# [1]  3.959853e+04  3.758643e+04  3.441184e+04  1.873364e+04  1.861345e+01  4.247310e+00  1.453736e+00
-# [8]  0.000000e+00 -4.407635e-02
+# [1] 41617.593143 40362.310251 37309.863813 33668.343616 18679.557058 18079.111183    93.263279    12.579849     1.507702
 
+lambda1 = max(eigen(hessian)$values)
+9*lambda1*10^(-9) #way below lowest eigenvalue
+
+# should be reproduced for several simulations later on. 
+
+## --- old comments on previous simus ---- #
 # There is however the question of whether this matrix is positive definite. 
 # (which happens for the Hessian when all eigenvalues are positive) -> I'm not sure in fact. 
 # The last eigenvalue is negative. On the other hand it is very small so we can consider it zero. 
+## ---------------------------------------- #
+
+# Looking at the correlations in the matrix 
+
+Sigma =solve(hessian) #variance-covariance matrix
+Rho = cov2cor(Sigma) #correlation matrix
+library(corrplot)
+par(mfrow=c(1,1))
+rownames(Rho) = c("r_V","1/K_V","sigma1","r_P","Q","sigma2","C","D","sigma3")
+colnames(Rho) = c("r_V","1/K_V","sigma1","r_P","Q","sigma2","C","D","sigma3")
+corrplot(Rho, method="circle")
+corrplot(Rho, method = "number")
+# There are significant correlations between pairs of parameters (same as in the Bayesian analysis)
 
 ######## Estimation based on RSS ##################
 
