@@ -2,6 +2,7 @@
 ### Updated 01/06/2017. 
 ### Case with "small noise" on the functional response
 ### FB 03/01/2019 Added plots for the paired posterior distributions
+### FB 05/01/2019 Reparameterized to check whether it removes the Paired PD correlations
 
 ### Log of previous edits to other versions ######################################################################################
 
@@ -33,7 +34,7 @@ library("R2jags")      # Load R2jags package
 n.years<-1000  	# Number of years - 25 first, perhaps use 50 or 100 / worked very well with almost no process error on the real scale
 N1<-1			# Initial pop size
 P1<-0.1
-K<-1			# threshold dd 
+K<-1*(exp(2)-1)	# true carrying capacity = 6.38 - so that threshold for dd = 1 
 beta<-1			# density-dependence exponent
 rmax_V<-2			# Max AVERAGE growth rate (thus not a true max...)
 rmax_P<-0.5
@@ -44,7 +45,12 @@ sigma2.proc<-0.05		# worked well with 0.005
 ### FR and predator parameters
 C<-2.5
 D<-1
-Q<-10
+a = C/D #reparam to classical Holling type II
+h = 1/C #reparam, handling time
+
+### Reparam, we have 
+#Q/(exp(r_P)-1)<-10
+Q = 10*(exp(0.5)-1)
 
 ### Simulation of data
 #set.seed(42) 
@@ -63,8 +69,8 @@ FRnoise<-rnorm(n.years-1,0,sqrt(sigma2.proc))
 for (t in 1:(n.years-1)){
  
   FR[t+1]<-(C*N[t]/(D+N[t])) + FRnoise[t+1]
-  N[t+1]<-N[t]*(exp(rV[t])/(1+(N[t]/K)^beta))*exp(-FR[t]*P[t]/N[t])
-  P[t+1]<-P[t]*exp(rP[t])/(1+P[t]*Q/N[t])
+  N[t+1]<-N[t]*(exp(rV[t]) / (1+ N[t] / (exp(rmax_V)*K) ) )*exp(-FR[t]*P[t]/N[t])
+  P[t+1]<-P[t]*exp(rP[t])/(1+P[t]*Q/(N[t]*(exp(rmax_P)-1)) )
 }
 ## Plotting time series of abundances and FR
 par(mfrow=c(2,2))
@@ -78,7 +84,7 @@ plot(N,FR)
 # Bundle data
 jags.data <- list(T=n.years,logN=log(N),logP=log(P),FR=FR)
 
-sink("ssm.predprey4.txt")
+sink("predpreymod.txt")
 cat("
     model {
     
@@ -87,40 +93,51 @@ cat("
     logP[1] ~ dnorm(0,0.01) # Prior on initial pop size on the log scale
 
     # Priors prey population dynamics
-    r_V ~ dnorm(1,0.001) # below the truth, rather flat prior
+    r_V ~ dnorm(1,1) #dnorm(1,0.001) # below the truth, rather flat prior
     K_V ~ dunif(0.2,10)
     sigma_V ~ dunif(0.01,5) # rather vague 
     sigma2_V<-pow(sigma_V, 2)
     tau_V<-pow(sigma_V,-2)
 
  
-     #Priors predator population dynamics
-    Q ~ dgamma(0.1,0.1)
-    r_P ~ dnorm(1,0.1)
+    #Priors predator population dynamics
+    Q ~ dgamma(0.1,0.1) ### can I change by e.g. dunif(4,40)?
+    r_P ~ dnorm(0.3,1) ## dnorm(1,0.1)
     sigma_P ~ dunif(0.01,2) # rather vague 
     sigma2_P<-pow(sigma_P, 2)
     tau_P<-pow(sigma_P,-2)
     
     #Priors predation parameters 
     tau_FR ~ dgamma(.01,.01)
-    C~dgamma(.01,.01) # uninformative priors OK for that one
-    D~dgamma(.01,.01)
-    # check model Leslie to see how she specified priors...
+    #C~dgamma(.01,.01) # uninformative priors OK for that one
+    #D~dgamma(.01,.01)
+    a~dgamma(.01,.01) # uninformative priors OK for that one
+    h~dgamma(.01,.01)
+
+    # Intermediate nodes
+    MV <- K_V * max(exp(r_V)-1,0.1)
+    #Another option is to restrict r_V and r_P to positive values 
+    QP <- Q / max(exp(r_P)-1,0.1) #this damned worked when I made a typo and used r_V
+   
 
     # Likelihood
     # state process
 
     for (t in 1:(T-1)){        
 
-    FRUpdate[t] <- C*N[t]/(D+N[t]) #functional response equation, including noise
+    FRUpdate[t] <- a*N[t]/(1+a*h*N[t]) #functional response equation, including noise
     FR[t+1] ~  dnorm(FRUpdate[t],tau_FR) #small trick to use FR data
-    logNupdate[t] <- logN[t] + r_V -log(1+N[t]/K_V) -FR[t+1]*exp(logP[t])/N[t]
+
+    logNupdate[t] <- logN[t] + r_V -log(1+ N[t]/MV ) -FR[t+1]*exp(logP[t])/N[t]
     logN[t+1] ~ dnorm(logNupdate[t],tau_V)
     N[t]<-exp(logN[t])
 
-    # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working
+    # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working initially
+    # But that's not the right equation... 
+    # Likely the problem was when r_V became negative in some of the chains
+
     logP[t+1]~ dnorm(logPupdate[t],tau_P)
-    logPupdate[t] <- logP[t] + r_P - log(1+exp(logP[t])*Q/exp(logN[t]) )  
+    logPupdate[t] <- logP[t] + r_P - log( 1 + exp(logP[t])*QP/N[t] ) 
     
     }
     
@@ -131,11 +148,11 @@ sink()
 
 # Initial values
 inits <- function () {
-  list(sigma_V=runif(1,0.1,2), sigma_P=runif(1,0.1,2), r_V=runif(1,0.1,2),r_P=runif(1,0.1,2), K_V=runif(1,0.2,8), Q=runif(1,0,5),tau_FR=runif(1,1,10),C=runif(1,10,100),D=runif(1,0.01,0.1))}
+  list(sigma_V=runif(1,0.1,2), sigma_P=runif(1,0.1,2), r_V=runif(1,1,2),r_P=runif(1,0.3,0.8), K_V=runif(1,0.2,8), Q=runif(1,4,10),tau_FR=runif(1,1,10),a=runif(1,1,10),h=runif(1,0.1,1))}
 
 # Parameters monitored
-parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D","logNupdate","logPupdate","FR")
-#parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","tau_FR","C","D")
+#parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D","logNupdate","logPupdate","FR")
+parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","tau_FR","a","h")
 
 
 # MCMC settings
@@ -146,7 +163,7 @@ ni<-34000
 nt <- 10 # “thinning”
 
 # run model
-out <- jags(jags.data, inits, parameters, "ssm.predprey4.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
+out <- jags(jags.data, inits, parameters, "predpreymod.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
 print(out, dig = 2)
 
 # Good title for a future paper (if I compute more quantities of Trophic Strength from this...) would be
@@ -154,15 +171,15 @@ print(out, dig = 2)
 
 # Output summary statistics
 jags.sum<-out$BUGSoutput$summary
-write.table(x=jags.sum,file="JAGSsummary_PredPreyStoch_analysisBis_longTS.txt")
+write.table(x=jags.sum,file="JAGSsummary_PredPreyStoch_analysisBis_reparam.txt")
 # MCMC Output
 #pdf("Output_MCMC__PredPreyStoch_analysisBis.pdf")
 out.mcmc<-as.mcmc(out)
 plot(out.mcmc) 
 #dev.off()
 
-CEb<-out$BUGSoutput$mean$C
-DEb<-out$BUGSoutput$mean$D
+aEb<-out$BUGSoutput$mean$a
+hEb<-out$BUGSoutput$mean$h
 
 logN1<-out$BUGSoutput$mean$logNupdate
 logP1<-out$BUGSoutput$mean$logPupdate
@@ -173,15 +190,15 @@ plot(1:(n.years-1),logP1,type="o")
 
 ### Fit functional response
 
-fr_fit<-nls(FR~CE*N/(DE+N),start=list(CE=1,DE=1))
-CE<-coef(fr_fit)[1]
-DE<-coef(fr_fit)[2]
+fr_fit<-nls(FR~aE*N/(1+aE*hE*N),start=list(aE=1,hE=1))
+aE<-coef(fr_fit)[1]
+hE<-coef(fr_fit)[2]
 plot(N,FR,ylim=c(0,max(FR,na.rm=T)))
-lines(N,CE*N/(DE+N))
-lines(N,CEb*N/(DEb+N),col="blue")
+lines(N,aE*N/(1+aE*hE*N))
+lines(N,aEb*N/(1+aEb*hEb*N),col="blue")
 
 ### Now try to fit a model without the FR data. 
-sink("ssm.predprey_without_sepFR.txt")
+sink("predpreymod_without_sepFR.txt")
 cat("
     model {
     
@@ -206,23 +223,32 @@ cat("
     
     #Priors predation parameters 
     
-    C~dgamma(.01,.01) # 
-    D~dgamma(.01,.01)
-    # check model Leslie to see how she specified priors...
-    
+    #C~dgamma(.01,.01) # 
+    # D~dgamma(.01,.01)
+    a~dgamma(.01,.01) # 
+    h~dgamma(.01,.01)
+
+    # Intermediate nodes
+    MV <- K_V * max(exp(r_V)-1,0.1)
+    #Another option is to restrict r_V and r_P to positive values 
+    QP <- Q / max(exp(r_P)-1,0.1) #this damned worked when I made a typo and used r_V
+
+
     # Likelihood
     # state process
     
     for (t in 1:(T-1)){        
 
     
-    logNupdate[t] <- logN[t] + r_V -log(1+N[t]/K_V) -C*exp(logP[t])/(D+N[t])
+    logNupdate[t] <- logN[t] + r_V -log(1+N[t]/MV) -a*exp(logP[t])/(1+a*h*N[t])
     logN[t+1] ~ dnorm(logNupdate[t],tau_V)
     N[t]<-exp(logN[t])
     
     # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working
+    # not the right equation though...
+
     logP[t+1]~ dnorm(logPupdate[t],tau_P)
-    logPupdate[t] <- logP[t] + r_P - log(1+exp(logP[t])*Q/exp(logN[t]) )  
+    logPupdate[t] <- logP[t] + r_P - log(1+exp(logP[t])*QP/exp(logN[t]) )  
     
     }
     
@@ -233,11 +259,10 @@ sink()
 
 # Initial values
 inits <- function () {
-  list(sigma_V=runif(1,0.1,2), sigma_P=runif(1,0.1,2), r_V=runif(1,0.1,2),r_P=runif(1,0.1,2), K_V=runif(1,0.2,8), Q=runif(1,0,5),C=runif(1,10,100),D=runif(1,0.01,0.1))}
+  list(sigma_V=runif(1,0.1,2), sigma_P=runif(1,0.1,2), r_V=runif(1,0.1,2),r_P=runif(1,0.1,2), K_V=runif(1,0.2,8), Q=runif(1,1,10),a=runif(1,1,10),h=runif(1,0.1,1))}
 
 # Parameters monitored
-parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D","logNupdate","logPupdate","FR")
-#parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D")
+parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","tau_FR","a","h")
 
 
 # MCMC settings
@@ -248,7 +273,7 @@ ni<-34000
 nt <- 10 # “thinning”
 
 # run model
-out2 <- jags(jags.data, inits, parameters, "ssm.predprey_without_sepFR.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
+out2 <- jags(jags.data, inits, parameters, "predpreymod_without_sepFR.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
 print(out2, dig = 2)
 # http://jeromyanglim.tumblr.com/post/37362047458/how-to-get-dic-in-jags
 print(out,dig=2) # to compare deviance, DIC - check also parameter values.
@@ -258,43 +283,47 @@ plot(as.mcmc(out))
 
 ### plot densities
 library(mcmcplots)
-denplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D"))
-denplot(out2,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D"))
+denplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","h"))
+denplot(out2,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","h"))
 
 ### Trace plots
-traplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D"))
-traplot(out2,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D"))
+png(file="TracePlot_withFRdata_reparam.png", width = 1200, height = 1200,res=300)
+traplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","h"))
+dev.off()
+png(file="TracePlot_withoutFRdata_reparam.png", width = 1200, height = 1200,res=300)
+traplot(out2,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","h"))
+dev.off()
 
 ### Plot pair posterior densities
 postsamples=cbind(out$BUGSoutput$sims.list$r_V,
 out$BUGSoutput$sims.list$K_V,
 out$BUGSoutput$sims.list$r_P,
 out$BUGSoutput$sims.list$Q,
-out$BUGSoutput$sims.list$C,
-out$BUGSoutput$sims.list$D)
-png(file="PairPosteriorPlot_withFRdata.png", width = 1200, height = 1200,res=300)
-pairs(postsamples,c("r_V","K_V","r_P","Q","C","D"))
+out$BUGSoutput$sims.list$a,
+out$BUGSoutput$sims.list$h)
+png(file="PairPosteriorPlot_withFRdata_reparam.png", width = 1200, height = 1200,res=300)
+pairs(postsamples,c("r_V","K_V","r_P","Q","a","h"))
 dev.off()
 
 postsamples2=cbind(out2$BUGSoutput$sims.list$r_V,
                   out2$BUGSoutput$sims.list$K_V,
                   out2$BUGSoutput$sims.list$r_P,
                   out2$BUGSoutput$sims.list$Q,
-                  out2$BUGSoutput$sims.list$C,
-                  out2$BUGSoutput$sims.list$D)
-png(file="PairPosteriorPlot_withoutFRdata.png", width = 1200, height = 1200, res=300)
-pairs(postsamples2,c("r_V","K_V","r_P","Q","C","D"))
+                  out2$BUGSoutput$sims.list$a,
+                  out2$BUGSoutput$sims.list$h)
+png(file="PairPosteriorPlot_withoutFRdata_reparam.png", width = 1200, height = 1200, res=300)
+pairs(postsamples2,c("r_V","K_V","r_P","Q","a","h"))
 dev.off()
 
-pdf(file="PairCorrelPosteriorPlot.pdf",width = 4,height = 8)
+pdf(file="PairCorrelPosteriorPlot_reparam.pdf",width = 4,height = 8)
 par(mfrow=c(2,1))
-parcorplot(out,parms = c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D"))
-parcorplot(out2,parms = c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D"))
+parcorplot(out,parms = c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","h"))
+parcorplot(out2,parms = c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","h"))
 dev.off()
 
 # Output summary statistics
 jags.sum2<-out2$BUGSoutput$summary
-write.table(x=jags.sum2,file="JAGSsummary_PredPreyStoch_analysisBis_longTS_noFR.txt")
+write.table(x=jags.sum2,file="JAGSsummary_PredPreyStoch_analysisBis_noFR_reparam.txt")
 
 ### Predicted values of the model fitted without the functional response
 logN2<-out2$BUGSoutput$mean$logNupdate
@@ -309,7 +338,3 @@ plot(2:(n.years),log(P)[2:(n.years)],type="o")
 lines(1:(n.years-1),logP1,type="o",col="red")
 lines(1:(n.years-1),logP2,type="o",col="blue")
 
-
-## NB Perhaps it is much easier to identify all the parameters when the model has close to zero environmental noise. 
-## Using sigma2 = 0.005 At least C is identified approximately correctly, though not D. 
-## Still much better fit with the FR it seems though. 
