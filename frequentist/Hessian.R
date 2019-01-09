@@ -257,7 +257,7 @@ corrplot(Rho, method = "number")
 
 ### New restricted theta
 theta_true  = c(rmax_V,1/K,rmax_P,Q,C,D)
-p_opt<-optim(theta_true, RSS, y=data,hessian=T)
+p_opt<-optim(theta_true, RSS,y=data,hessian=T)
 p_opt$par
 theta_true
 p_opt$hessian
@@ -301,8 +301,11 @@ eigen(p_opt$hessian) ### clearly interesting and non zero
 # Nope!! There are only 8 elements here, no sigma3!!
 
 theta_true  = c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C,D)
-p_opt<-optim(theta_true, logLik_FRwoutNoise, y=data,hessian=T)
+p_opt<-optim(theta_true, logLik_FRwoutNoise, method="BFGS",y=data,hessian=T)
 p_opt$par
+### BFGS
+# [1]  1.5041455  0.5197072  0.2226370  0.5065558 10.3046050  0.2314249 33.2937812 66.2760413
+### Nelder-Mead
 # [1]  1.9914255  0.9680671  0.2224996  0.5107744 10.4210424  0.2310457  3.2480513  1.8051012
 theta_true
 # [1]  2.0000000  1.0000000  0.2236068  0.5000000 10.0000000  0.2236068  2.5000000  1.0000000
@@ -317,6 +320,31 @@ p_opt$hessian
 # [7,] -9.778635e+02  8.390894e+02 -9.458752e+00  0.000000e+00  0.000000e+00  3.552714e-09  5.381699e+01 -2.630698e+01
 # [8,]  4.602678e+02 -3.920669e+02  5.322839e+00 -1.598721e-08 -1.776357e-08  3.552714e-09 -2.630698e+01  1.318995e+01
 eigen(p_opt$hessian)
+# $values
+# [1] 6.054577e+04 4.031416e+04 3.730971e+04 1.867950e+04 5.779300e+01 1.504246e+00 5.509579e-02
+# [8] 5.308338e-05
+# 
+# $vectors
+# [,1]          [,2]          [,3]          [,4]          [,5]          [,6]
+# [1,]  5.764044e-01 -4.308947e-05  1.260089e-12 -4.883187e-13  8.171292e-01 -2.827274e-10
+# [2,] -8.171589e-01  4.152968e-05  1.139785e-13 -3.081142e-13  5.764101e-01 -2.160426e-10
+# [3,] -5.876738e-05 -1.000000e+00  1.064255e-11 -3.343097e-13 -1.125797e-05  7.715109e-14
+# [4,]  3.740335e-14 -3.318773e-13 -5.056317e-05  9.992864e-01  1.529329e-11  3.777154e-02
+# [5,]  1.881479e-13  9.401594e-14  5.322336e-06 -3.777154e-02  3.893140e-10  9.992864e-01
+# [6,]  6.325077e-13 -1.064259e-11 -1.000000e+00 -5.072812e-05  1.096834e-12  3.408689e-06
+# [7,] -2.766412e-03 -1.958303e-06  2.828092e-13  5.638389e-13 -6.198803e-03  2.891478e-09
+# [8,]  1.282357e-03  3.971253e-07  5.726018e-13  7.743699e-13  3.588536e-03 -4.496595e-09
+# [,7]          [,8]
+# [1,] -7.586655e-03 -5.278368e-04
+# [2,] -1.620123e-03 -3.734781e-04
+# [3,]  2.203137e-06 -4.566506e-07
+# [4,]  1.706311e-10  1.071605e-10
+# [5,]  4.509435e-09  2.859934e-09
+# [6,] -9.924139e-15  6.475621e-13
+# [7,] -9.071098e-01  4.208392e-01
+# [8,]  4.208225e-01  9.071350e-01
+
+#### Nelder-Mead
 # $values
 # [1] 40627.4553092 37618.1668741 35311.2566499 18740.5788017    14.9681016     2.1552563     1.4647539    -0.2764503
 # 
@@ -333,22 +361,34 @@ eigen(p_opt$hessian)
 
 ######### Estimation starting away from MLE ########
 theta_init = theta_true + rnorm(8,0,sd=0.05)
-p_opt<-optim(theta_init, logLik_FRwoutNoise, y=data,hessian=T)
+p_opt<-optim(theta_init, logLik_FRwoutNoise,method="BFGS", y=data,hessian=T)
 p_opt$par
 theta_true
 theta_init
 p_opt$hessian
 eigen(p_opt$hessian)
+### BFGS
+#$values
+#[1] 6.193873e+04 4.032005e+04 3.731044e+04 1.867967e+04 6.016344e+01 1.507778e+00 1.812701e-02
+#[8] 9.703971e-06
+### Looks like BFGS performs worse than Nelder-Mead without the FR data (see below as well)
+
+### Nelder-Mead
 #$values
 #[1]  4.013941e+04  3.727161e+04  3.536148e+04  1.867194e+04  1.933835e+01  4.327331e+00  1.533097e+00 -4.063515e-02
 ### Seems better starting a little further away. May be need to be repeated
+
 theta_init = theta_true + rnorm(8,0,sd=0.05)
-p_opt<-optim(theta_init, logLik_FRwoutNoise, y=data,hessian=T)
+p_opt<-optim(theta_init, logLik_FRwoutNoise,method="BFGS",y=data,hessian=T)
 p_opt$par
 theta_true
 theta_init
 p_opt$hessian
 eigen(p_opt$hessian)
+### BFGS
+#$values
+#[1] 6.037045e+04 4.031188e+04 3.731284e+04 1.868018e+04 5.741190e+01 1.513332e+00 5.721312e-02
+#[8] 5.451893e-05
 # $values
 # [1] 40942.1328803 36579.3709513 33872.4695387 18511.1139219    19.6803090     2.9133301     1.2436616    -0.2908425
 ### Seems like quite of bit of these estimates of last eigenvalue are negative. 
