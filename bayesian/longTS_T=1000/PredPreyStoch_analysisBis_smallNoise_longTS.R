@@ -134,8 +134,8 @@ inits <- function () {
   list(sigma_V=runif(1,0.1,2), sigma_P=runif(1,0.1,2), r_V=runif(1,0.1,2),r_P=runif(1,0.1,2), K_V=runif(1,0.2,8), Q=runif(1,0,5),tau_FR=runif(1,1,10),C=runif(1,10,100),D=runif(1,0.01,0.1))}
 
 # Parameters monitored
-parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D","logNupdate","logPupdate","FR")
-#parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","tau_FR","C","D")
+#parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D","logNupdate","logPupdate","FR")
+parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","tau_FR","C","D")
 
 
 # MCMC settings
@@ -236,8 +236,8 @@ inits <- function () {
   list(sigma_V=runif(1,0.1,2), sigma_P=runif(1,0.1,2), r_V=runif(1,0.1,2),r_P=runif(1,0.1,2), K_V=runif(1,0.2,8), Q=runif(1,0,5),C=runif(1,10,100),D=runif(1,0.01,0.1))}
 
 # Parameters monitored
-parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D","logNupdate","logPupdate","FR")
-#parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D")
+#parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D","logNupdate","logPupdate","FR")
+parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D")
 
 
 # MCMC settings
@@ -313,3 +313,81 @@ lines(1:(n.years-1),logP2,type="o",col="blue")
 ## NB Perhaps it is much easier to identify all the parameters when the model has close to zero environmental noise. 
 ## Using sigma2 = 0.005 At least C is identified approximately correctly, though not D. 
 ## Still much better fit with the FR it seems though. 
+
+
+#### Reproduce the FR curve without and without the correlations between parameters
+## All possible curves
+Clist = out$BUGSoutput$sims.list$C
+Dlist = out$BUGSoutput$sims.list$D
+n = length(Clist)
+ndens = 100
+Nprey <- seq(1,20,length=ndens) #density index
+FRstoch = matrix(NA,nrow = n, ncol = ndens)
+
+png('Estimated_FR.png',res=300,width=2000,height=1000)
+par(mfrow=c(1,2))
+library(scales)
+for (i in 1:n){
+  for (dens in 1:length(Nprey))
+  {
+    FRstoch[i,dens] = Clist[i]*Nprey[dens]/(Dlist[i]+Nprey[dens])
+  }
+  if (i == 1){plot(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Functional response',ylim=c(1,3),xlim=c(1,10),xlab='N prey',main='With (C,D) correlations')
+  }
+  else {lines(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
+}
+
+# what if there was no correlation between parameters? 
+# randomize
+Clist = sample(Clist)
+Dlist = sample(Dlist)
+for (i in 1:n){
+  for (dens in 1:length(Nprey))
+  {
+    FRstoch[i,dens] = Clist[i]*Nprey[dens]/(Dlist[i]+Nprey[dens])
+  }
+  if (i == 1){plot(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Functional response',ylim=c(1,3),xlim=c(1,10),xlab='N prey',main='Without (C,D) correlations')
+  }
+  else {lines(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
+}
+
+dev.off()
+
+#### Same plot without the FR data
+
+Clist = out2$BUGSoutput$sims.list$C
+Dlist = out2$BUGSoutput$sims.list$D
+n = length(Clist)
+ndens = 100
+Nprey <- seq(1,20,length=ndens) #density index
+FRstoch = matrix(NA,nrow = n, ncol = ndens)
+
+png('Estimated_FR_withoutFRdata.png',res=300,width=2000,height=1000)
+par(mfrow=c(1,2))
+library(scales)
+for (i in 1:n){
+  for (dens in 1:length(Nprey))
+  {
+    FRstoch[i,dens] = Clist[i]*Nprey[dens]/(Dlist[i]+Nprey[dens])
+  }
+  if (i == 1){plot(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Functional response',ylim=c(1,3),xlim=c(1,10),xlab='N prey',main='With (C,D) correlations')
+  }
+  else {lines(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
+}
+
+# what if there was no correlation between parameters? 
+
+Clist = sample(Clist)
+Dlist = sample(Dlist)
+for (i in 1:n){
+  for (dens in 1:length(Nprey))
+  {
+    FRstoch[i,dens] = Clist[i]*Nprey[dens]/(Dlist[i]+Nprey[dens])
+  }
+  if (i == 1){plot(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Functional response',ylim=c(1,3),xlim=c(1,10),xlab='N prey',main='Without (C,D) correlations')
+  }
+  else {lines(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
+}
+
+dev.off()
+
