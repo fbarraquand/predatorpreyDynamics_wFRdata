@@ -1,0 +1,3 @@
+Code where the FR is delayed, depends on past densities -- obviously a mistake, but interesting because it shows clearly a noise-driven extinction in the absence of a refuge, which by itself is fairly interesting. 
+
+NB we might still need a refuge for other values of the parameters
