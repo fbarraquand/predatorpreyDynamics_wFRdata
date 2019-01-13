@@ -1,6 +1,7 @@
 ### FB 13/11/2017 - predator-prey model with noisy functional response data
 ### From much earlier code
 ### 15/03/2018 Added comparison to deterministic version of the code
+### 13/09/2019 Still perturbed fixed point but more oscillatory
 
 rm(list=ls())
 graphics.off()
@@ -8,7 +9,7 @@ graphics.off()
 ### Model used (use stored simulated data later on, just tryouts for now)
 n.years<-300  	# Number of years // large so that we have no bias due to data length
 N1<-1			# Initial pop size
-P1<-0.4   # O.1 before but difficult to see if there are transient oscillations
+P1<-0.1  # O.1 before but difficult to see if there are transient oscillations
 K<-1			# threshold dd 
 beta<-1			# density-dependence exponent
 rmax_V<-2			# Max AVERAGE growth rate (thus not a true max...)
@@ -18,8 +19,8 @@ sigma2.proc<-0.0		# worked well with 0.005
 
 
 ### FR and predator parameters
-C<-2.5
-D<-1
+C<-15
+D<-1.25
 Q<-10
 
 ### Simulation of data
@@ -52,7 +53,7 @@ plot(N,FR)
 ### Produce dataset to fit
 data = cbind(log(N),log(P),FR) 
 
-write.csv(data,file="predatorPrey_withGaussianFRdata_longSim_noNoise.csv")
+write.csv(data,file="predatorPrey_withGaussianFRdata_longSim_noNoise_moreOscillatory.csv")
 
 #####################################################################################
 
@@ -67,13 +68,15 @@ K<-1			# threshold dd
 beta<-1			# density-dependence exponent
 rmax_V<-2			# Max AVERAGE growth rate (thus not a true max...)
 rmax_P<-0.5
-sigma2.proc<-0.05		# worked well with 0.005
+#sigma2.proc<-0.05		# worked well with 0.005
+sigma2.proc<-0.005		# worked well with 0.005
+
 # Process sigma on the log-scale, use the Peretti et al. value. 0.005
 
 
 ### FR and predator parameters
-C<-2.5
-D<-1
+C<-15
+D<-1.25
 Q<-10
 
 ### Simulation of data
@@ -110,4 +113,4 @@ spectrum(log(P),method="ar")
 ### Produce dataset to fit
 data = cbind(log(N),log(P),FR) 
 
-write.csv(data,file="predatorPrey_withGaussianFRdata_longSim.csv")
+write.csv(data,file="predatorPrey_withGaussianFRdata_longSim_moreOscillatory.csv")
