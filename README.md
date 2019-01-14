@@ -38,3 +38,13 @@ Fits dynamic predator-prey models with (and without) auxillary functional respon
 * There can be change in several orders of magnitude in the eigenvalues (e.g. from $10^3$ to $10^{-2}$). Does this mean I should consider everyting below 2 orders of magnitude from the max to zero? In which case there would not be full rank matrices... Or switch to symbolic computation, but if I can avoid that I'd rather do so... 
 
 * NB Important: the fact that the "basic" parameter set is identifiable may be due to the fact that it exhibits fluctuation when noise is added, which in turn might be due to a pair of complex eigenvalues -- dampened oscillations to equilibrium. To check. Although we have r=2 so the basic prey model might exhibit dampening oscillations as well. A Jacobian computation might be really needed!
+
+### Progress report FB 14/01/2019
+
+* Identifiability assessed for the model and parameter correlations highlighed, for both bayesian and frequentist versions of the code. Code in ``Hessian.R`` notably improved. Added (over the last few weeks) more diagnostics of posterior distributions in the bayesian ``longTS_T=1000`` folder. Profile log-likelihood code improved as well. 
+
+* Jacobian-based stability analysis of the deterministic model allows to classify noisy cycles vs perturbed focus parameter sets. In ``analytical``
+
+* A delayed FR, depending on densities at the previous time step, rather than depending on current density was found in the simulation code in the ``bayesian`` folder (hence model simulated was slightly different than fitted). The ``simulations`` folder was corrected accordingly. In the ``frequentist`` folder, we had a delayed FR that was both simulated and fitted. Therefore all previous results (e.g., on identifiability and parameter correlations) may hold, even though the final model that makes sense biologically and that we want to analyse has a FR<sub>t</sub> that depends on N<sub>t</sub> and P<sub>t</sub>. Suprisingly, the delayed FR model was not much more instable than the nondelayed FR model, which probably explain why this error was not found until now. Now corrected. 
+
+* The reparameterization was corrected (after looking up the equations in the math derivations). It looks like the (r,K) and (s,Q) correlations are now mostly removed, but the (C,D) or (a,h) correlations are more "resistant" to reparameterization...
