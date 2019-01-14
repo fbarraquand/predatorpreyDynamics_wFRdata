@@ -28,9 +28,9 @@
     h~dgamma(.01,.01)
 
     # Intermediate nodes
-    MV <- K_V * max(exp(r_V)-1,0.1)
+    MV <- K_V / max(exp(r_V)-1,0.1)
     #Another option is to restrict r_V and r_P to positive values 
-    QP <- Q / max(exp(r_P)-1,0.1) #this damned worked when I made a typo and used r_V
+    QP <- Q * max(exp(r_P)-1,0.1) #this damned worked when I made a typo and used r_V
    
 
     # Likelihood
@@ -39,14 +39,14 @@
     for (t in 1:(T-1)){        
 
     FRUpdate[t] <- a*N[t]/(1+a*h*N[t]) #functional response equation, including noise
-    FR[t+1] ~  dnorm(FRUpdate[t],tau_FR) #small trick to use FR data
+    FR[t] ~  dnorm(FRUpdate[t],tau_FR) #small trick to use FR data
 
-    logNupdate[t] <- logN[t] + r_V -log(1+ N[t]/MV ) -FR[t+1]*exp(logP[t])/N[t]
+    logNupdate[t] <- logN[t] + r_V -log(1+ N[t]/MV ) -FR[t]*exp(logP[t])/N[t]
     logN[t+1] ~ dnorm(logNupdate[t],tau_V)
     N[t]<-exp(logN[t])
 
-    # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working initially
-    # But that's not the right equation... 
+    # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working initially. 
+    # Likely the problem was when r_V became negative in some of the chains
 
     logP[t+1]~ dnorm(logPupdate[t],tau_P)
     logPupdate[t] <- logP[t] + r_P - log( 1 + exp(logP[t])*QP/N[t] ) 

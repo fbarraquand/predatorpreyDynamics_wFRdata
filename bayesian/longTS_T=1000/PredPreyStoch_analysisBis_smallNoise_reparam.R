@@ -3,6 +3,7 @@
 ### Case with "small noise" on the functional response
 ### FB 03/01/2019 Added plots for the paired posterior distributions
 ### FB 05/01/2019 Reparameterized to check whether it removes the Paired PD correlations
+### FB 14/01/2019 Corrected FR to nondelayed version
 
 ### Log of previous edits to other versions ######################################################################################
 
@@ -34,9 +35,11 @@ library("R2jags")      # Load R2jags package
 n.years<-1000  	# Number of years - 25 first, perhaps use 50 or 100 / worked very well with almost no process error on the real scale
 N1<-1			# Initial pop size
 P1<-0.1
-K<-1*(exp(2)-1)	# true carrying capacity = 6.38 - so that threshold for dd = 1 
+
 beta<-1			# density-dependence exponent
 rmax_V<-2			# Max AVERAGE growth rate (thus not a true max...)
+K<-1*(exp(rmax_V)-1)	# true carrying capacity - so that threshold for dd = 1 as in previous code
+
 rmax_P<-0.5
 sigma2.proc<-0.05		# worked well with 0.005
 # Process sigma on the log-scale, use the Peretti et al. value. 0.005
@@ -49,8 +52,8 @@ a = C/D #reparam to classical Holling type II
 h = 1/C #reparam, handling time
 
 ### Reparam, we have 
-#Q/(exp(r_P)-1)<-10
-Q = 10*(exp(0.5)-1)
+# Q*(exp(r_P)-1) should be 10 to keep the exact same parameter values as the previous model, irrespective of parameterization
+Q = 10/(exp(rmax_P)-1)
 
 ### Simulation of data
 #set.seed(42) 
@@ -68,10 +71,11 @@ FRnoise<-rnorm(n.years-1,0,sqrt(sigma2.proc))
 
 for (t in 1:(n.years-1)){
  
-  FR[t+1]<-(C*N[t]/(D+N[t])) + FRnoise[t+1]
-  N[t+1]<-N[t]*(exp(rV[t]) / (1+ N[t] / (exp(rmax_V)*K) ) )*exp(-FR[t]*P[t]/N[t])
-  P[t+1]<-P[t]*exp(rP[t])/(1+P[t]*Q/(N[t]*(exp(rmax_P)-1)) )
+  N[t+1]<-N[t]*(exp(rV[t]) / (1+ N[t]*(exp(rmax_V)-1)/K ) )*exp(-FR[t]*P[t]/N[t])
+  P[t+1]<-P[t]*exp(rP[t]) /(1+P[t]*(exp(rmax_P)-1)*Q/N[t] )
+  FR[t+1]<- C*N[t+1]/(D+N[t+1])  + FRnoise[t+1]
 }
+
 ## Plotting time series of abundances and FR
 par(mfrow=c(2,2))
 plot(1:n.years,N,type="b")
@@ -115,9 +119,9 @@ cat("
     h~dgamma(.01,.01)
 
     # Intermediate nodes
-    MV <- K_V * max(exp(r_V)-1,0.1)
+    MV <- K_V / max(exp(r_V)-1,0.1)
     #Another option is to restrict r_V and r_P to positive values 
-    QP <- Q / max(exp(r_P)-1,0.1) #this damned worked when I made a typo and used r_V
+    QP <- Q * max(exp(r_P)-1,0.1) #this damned worked when I made a typo and used r_V
    
 
     # Likelihood
@@ -126,14 +130,13 @@ cat("
     for (t in 1:(T-1)){        
 
     FRUpdate[t] <- a*N[t]/(1+a*h*N[t]) #functional response equation, including noise
-    FR[t+1] ~  dnorm(FRUpdate[t],tau_FR) #small trick to use FR data
+    FR[t] ~  dnorm(FRUpdate[t],tau_FR) #small trick to use FR data
 
-    logNupdate[t] <- logN[t] + r_V -log(1+ N[t]/MV ) -FR[t+1]*exp(logP[t])/N[t]
+    logNupdate[t] <- logN[t] + r_V -log(1+ N[t]/MV ) -FR[t]*exp(logP[t])/N[t]
     logN[t+1] ~ dnorm(logNupdate[t],tau_V)
     N[t]<-exp(logN[t])
 
-    # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working initially
-    # But that's not the right equation... 
+    # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working initially. 
     # Likely the problem was when r_V became negative in some of the chains
 
     logP[t+1]~ dnorm(logPupdate[t],tau_P)
@@ -165,9 +168,6 @@ nt <- 10 # “thinning”
 # run model
 out <- jags(jags.data, inits, parameters, "predpreymod.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
 print(out, dig = 2)
-
-# Good title for a future paper (if I compute more quantities of Trophic Strength from this...) would be
-# An integrated assessment of trophic interaction strength. 
 
 # Output summary statistics
 jags.sum<-out$BUGSoutput$summary
@@ -229,9 +229,9 @@ cat("
     h~dgamma(.01,.01)
 
     # Intermediate nodes
-    MV <- K_V * max(exp(r_V)-1,0.1)
+    MV <- K_V / max(exp(r_V)-1,0.1)
     #Another option is to restrict r_V and r_P to positive values 
-    QP <- Q / max(exp(r_P)-1,0.1) #this damned worked when I made a typo and used r_V
+    QP <- Q * max(exp(r_P)-1,0.1) #this damned worked when I made a typo and used r_V
 
 
     # Likelihood
@@ -243,9 +243,7 @@ cat("
     logNupdate[t] <- logN[t] + r_V -log(1+N[t]/MV) -a*exp(logP[t])/(1+a*h*N[t])
     logN[t+1] ~ dnorm(logNupdate[t],tau_V)
     N[t]<-exp(logN[t])
-    
     # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working
-    # not the right equation though...
 
     logP[t+1]~ dnorm(logPupdate[t],tau_P)
     logPupdate[t] <- logP[t] + r_P - log(1+exp(logP[t])*QP/exp(logN[t]) )  

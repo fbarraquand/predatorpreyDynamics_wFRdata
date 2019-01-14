@@ -2,6 +2,7 @@
 ### Updated 01/06/2017. 
 ### Case with "small noise" on the functional response
 ### FB 03/01/2019 Added plots for the paired posterior distributions
+### FB 14/01/2019 Corrected FR to nondelayed version
 
 ### Log of previous edits to other versions ######################################################################################
 
@@ -61,10 +62,10 @@ rP<-rnorm(n.years-1,rmax_P,sqrt(sigma2.proc))
 FRnoise<-rnorm(n.years-1,0,sqrt(sigma2.proc))
 
 for (t in 1:(n.years-1)){
- 
-  FR[t+1]<-(C*N[t]/(D+N[t])) + FRnoise[t+1]
+
   N[t+1]<-N[t]*(exp(rV[t])/(1+(N[t]/K)^beta))*exp(-FR[t]*P[t]/N[t])
   P[t+1]<-P[t]*exp(rP[t])/(1+P[t]*Q/N[t])
+  FR[t+1]<-(C*N[t+1]/(D+N[t+1])) + FRnoise[t+1] #after for update
 }
 ## Plotting time series of abundances and FR
 par(mfrow=c(2,2))
@@ -113,12 +114,13 @@ cat("
     for (t in 1:(T-1)){        
 
     FRUpdate[t] <- C*N[t]/(D+N[t]) #functional response equation, including noise
-    FR[t+1] ~  dnorm(FRUpdate[t],tau_FR) #small trick to use FR data
-    logNupdate[t] <- logN[t] + r_V -log(1+N[t]/K_V) -FR[t+1]*exp(logP[t])/N[t]
+    FR[t] ~  dnorm(FRUpdate[t],tau_FR) #small trick to use FR data
+
+    logNupdate[t] <- logN[t] + r_V -log(1+N[t]/K_V) -FR[t]*exp(logP[t])/N[t]
     logN[t+1] ~ dnorm(logNupdate[t],tau_V)
     N[t]<-exp(logN[t])
-
     # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working
+
     logP[t+1]~ dnorm(logPupdate[t],tau_P)
     logPupdate[t] <- logP[t] + r_P - log(1+exp(logP[t])*Q/exp(logN[t]) )  
     
@@ -134,8 +136,8 @@ inits <- function () {
   list(sigma_V=runif(1,0.1,2), sigma_P=runif(1,0.1,2), r_V=runif(1,0.1,2),r_P=runif(1,0.1,2), K_V=runif(1,0.2,8), Q=runif(1,0,5),tau_FR=runif(1,1,10),C=runif(1,10,100),D=runif(1,0.01,0.1))}
 
 # Parameters monitored
-#parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D","logNupdate","logPupdate","FR")
-parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","tau_FR","C","D")
+parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D","logNupdate","logPupdate","FR")
+#parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","tau_FR","C","D")
 
 
 # MCMC settings

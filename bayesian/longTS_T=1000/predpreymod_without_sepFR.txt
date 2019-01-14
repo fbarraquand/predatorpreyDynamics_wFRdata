@@ -28,9 +28,9 @@
     h~dgamma(.01,.01)
 
     # Intermediate nodes
-    MV <- K_V * max(exp(r_V)-1,0.1)
+    MV <- K_V / max(exp(r_V)-1,0.1)
     #Another option is to restrict r_V and r_P to positive values 
-    QP <- Q / max(exp(r_P)-1,0.1) #this damned worked when I made a typo and used r_V
+    QP <- Q * max(exp(r_P)-1,0.1) #this damned worked when I made a typo and used r_V
 
 
     # Likelihood
@@ -42,9 +42,7 @@
     logNupdate[t] <- logN[t] + r_V -log(1+N[t]/MV) -a*exp(logP[t])/(1+a*h*N[t])
     logN[t+1] ~ dnorm(logNupdate[t],tau_V)
     N[t]<-exp(logN[t])
-    
     # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working
-    # not the right equation though...
 
     logP[t+1]~ dnorm(logPupdate[t],tau_P)
     logPupdate[t] <- logP[t] + r_P - log(1+exp(logP[t])*QP/exp(logN[t]) )  
