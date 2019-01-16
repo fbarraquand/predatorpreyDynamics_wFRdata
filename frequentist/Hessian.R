@@ -1,5 +1,6 @@
 #### 15/03/2018 -- FBarraquand and OGimenez
 #### Computation of the Hessian for the discrete-time Leslie-May model
+### FB 16/01/2019 -- edited so that functional response timing match math model (no delays)
 
 
 ### --- Questions ------------------------------------------------------------------#### 
@@ -54,10 +55,10 @@ rP<-rnorm(n.years-1,rmax_P,sqrt(sigma2.proc))
 FRnoise<-rnorm(n.years,0,sqrt(sigma2.proc))
 
 for (t in 1:(n.years-1)){
- 
-  FR[t+1]<-(C*N[t]/(D+N[t])) + FRnoise[t+1]
+
   N[t+1]<-N[t]*(exp(rV[t])/(1+(N[t]/K)^beta))*exp(-FR[t]*P[t]/N[t])
   P[t+1]<-P[t]*exp(rP[t])/(1+P[t]*Q/N[t])
+  FR[t+1]<-(C*N[t+1]/(D+N[t+1])) + FRnoise[t+1] #updated after so that timing matches
 }
 ## Plotting time series of abundances and FR
 par(mfrow=c(2,2))
@@ -91,13 +92,14 @@ ll = 0.0 ### Or p_1(a_1|x_1) p(x_1)
 for (t in 2:n){
 N_t = exp(y[t-1,1])
 P_t = exp(y[t-1,2]) 
+N_tplus1 = exp(y[t,1]) #useful for the functional response
 
 ######## Error that was previously there!! N_t/P_t instead P_t/N_t ###
 ### mu1 = y[t-1,1] + theta[1] - log(1+theta[2]*N_t) - y[t-1,3]*N_t/P_t
 ######################################################################
-mu1 = y[t-1,1] + theta[1] - logprot(1+theta[2]*N_t) - y[t-1,3]*P_t/N_t
+mu1 = y[t-1,1] + theta[1] - logprot(1+theta[2]*N_t) - y[t-1,3]*P_t/N_t #this is correct timing
 mu2 = y[t-1,2] + theta[4] - logprot((1+theta[5]*P_t/N_t))
-mu3 = (theta[7]*N_t)/(theta[8] + N_t)
+mu3 = (theta[7]*N_tplus1)/(theta[8] + N_tplus1) #easier to update all variables simultaneously, minimizes errors
 #ll= ll + log(dnorm(y[t,1], mu1, theta[3])) +  log(dnorm(y[t,2], mu2, theta[6])) + log(dnorm(y[t,3], mean = mu3, sd = theta[9]))
 # we have log(0) problem
 d1=dnorm(y[t,1], mu1, theta[3],log=T) ## directly asking for the log avoids problems
@@ -127,11 +129,12 @@ RSS=function(theta,y){
   for (t in 2:n){
     N_t = exp(y[t-1,1])
     P_t = exp(y[t-1,2]) 
+    N_tplus1 = exp(y[t,1]) #useful for the functional response
     ############## Correction of error ###########################################
     ## mu1 = y[t-1,1] + theta[1] - log(1+theta[2]*N_t) - y[t-1,3]*N_t/P_t # error
     mu1 = y[t-1,1] + theta[1] - logprot(1+theta[2]*N_t) - y[t-1,3]*P_t/N_t # corrected
     mu2 = y[t-1,2] + theta[3] - logprot((1+theta[4]*P_t/N_t))
-    mu3 = (theta[5]*N_t)/(theta[6] + N_t)
+    mu3 = (theta[5]*N_tplus1)/(theta[6] + N_tplus1)
     rss=rss+(y[t,1] - mu1)^2+(y[t,2]-mu2)^2+(y[t,3]-mu3)^2
   }
   return(rss)
