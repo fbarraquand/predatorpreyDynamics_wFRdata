@@ -336,3 +336,168 @@ plot(2:(n.years),log(P)[2:(n.years)],type="o")
 lines(1:(n.years-1),logP1,type="o",col="red")
 lines(1:(n.years-1),logP2,type="o",col="blue")
 
+#### Reproduce the FR curve without and without the correlations between parameters
+
+## All possible curves
+alist = out$BUGSoutput$sims.list$a
+hlist = out$BUGSoutput$sims.list$h
+n = length(Clist)
+ndens = 100
+Nprey <- seq(1,20,length=ndens) #density index
+FRstoch = matrix(NA,nrow = n, ncol = ndens)
+
+png('Estimated_FR_reparam.png',res=300,width=2000,height=1000)
+par(mfrow=c(1,2))
+library(scales)
+for (i in 1:n){
+  for (dens in 1:length(Nprey))
+  {
+    FRstoch[i,dens] = alist[i]*Nprey[dens]/(1.0+alist[i]*hlist[i]*Nprey[dens])
+  }
+  if (i == 1){plot(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Functional response',ylim=c(1,3),xlim=c(1,10),xlab='N prey',main='With (a,h) correlations')
+  }
+  else {lines(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
+  lines(Nprey,a*Nprey/(1+a*h*Nprey),col=alpha('red',1.0))
+}
+
+# what if there was no correlation between parameters? 
+# randomize
+alist = sample(alist)
+hlist = sample(hlist)
+for (i in 1:n){
+  for (dens in 1:length(Nprey))
+  {
+    FRstoch[i,dens] = alist[i]*Nprey[dens]/(1.0+alist[i]*hlist[i]*Nprey[dens])
+   
+  }
+  if (i == 1){plot(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Functional response',ylim=c(1,3),xlim=c(1,10),xlab='N prey',main='Without (a,h) correlations')
+  }
+  else {lines(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
+  lines(Nprey,a*Nprey/(1+a*h*Nprey),col=alpha('red',1.0))
+}
+
+dev.off()
+
+#### Same plot without the FR data
+
+alist = out2$BUGSoutput$sims.list$a
+hlist = out2$BUGSoutput$sims.list$h
+n = length(Clist)
+ndens = 100
+Nprey <- seq(1,20,length=ndens) #density index
+FRstoch = matrix(NA,nrow = n, ncol = ndens)
+
+png('Estimated_FR_withoutFRdata_reparam.png',res=300,width=2000,height=1000)
+par(mfrow=c(1,2))
+library(scales)
+for (i in 1:n){
+  for (dens in 1:length(Nprey))
+  {
+    FRstoch[i,dens] = alist[i]*Nprey[dens]/(1.0+alist[i]*hlist[i]*Nprey[dens])
+  }
+  if (i == 1){plot(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Functional response',ylim=c(1,3),xlim=c(1,10),xlab='N prey',main='With (a,h) correlations')
+  }
+  else {lines(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
+  lines(Nprey,a*Nprey/(1+a*h*Nprey),col=alpha('red',1.0))
+}
+
+# what if there was no correlation between parameters? 
+
+alist = sample(alist)
+hlist = sample(hlist)
+for (i in 1:n){
+  for (dens in 1:length(Nprey))
+  {
+    FRstoch[i,dens] = alist[i]*Nprey[dens]/(1.0+alist[i]*hlist[i]*Nprey[dens])
+  }
+  if (i == 1){plot(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Functional response',ylim=c(1,3),xlim=c(1,10),xlab='N prey',main='Without (a,h) correlations')
+  }
+  else {lines(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
+  lines(Nprey,a*Nprey/(1+a*h*Nprey),col=alpha('red',1.0))
+}
+
+dev.off()
+
+
+#### Reproduce the density-dependent curves without and without the correlations between parameters
+# For the prey
+rlist = out$BUGSoutput$sims.list$r_V
+Klist = out$BUGSoutput$sims.list$K_V
+
+n = length(rlist)
+ndens = 100
+Nprey <- seq(1,50,length=ndens) #density index
+preyDD = matrix(NA,nrow = n, ncol = ndens)
+
+png('Estimated_preyDD_reparam.png',res=300,width=2000,height=1000)
+par(mfrow=c(1,2))
+library(scales)
+for (i in 1:n){
+  for (dens in 1:length(Nprey))
+  {
+    preyDD[i,dens] = exp(rlist[i])/(1+(exp(rlist[i])-1)*Nprey[dens]/Klist[i])
+  }
+  if (i == 1){plot(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Prey growth rate',ylim=c(-1,6),xlim=c(1,50),xlab='N prey',main='With (r,K) correlations')
+  }
+  else {lines(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
+  lines(Nprey,exp(rmax_V)/(1+Nprey*(exp(rmax_V)-1)/K),col=alpha('red',1.0))
+}
+
+# what if there was no correlation between parameters? 
+rlist = sample(rlist)
+Klist = sample(Klist)
+for (i in 1:n){
+  for (dens in 1:length(Nprey))
+  {
+    preyDD[i,dens] = exp(rlist[i])/(1+(exp(rlist[i])-1)*Nprey[dens]/Klist[i])
+  }
+  if (i == 1){plot(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Prey growth rate',ylim=c(-1,6),xlim=c(1,50),xlab='N prey',main='Without (r,K) correlations')
+  }
+  else {lines(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
+  lines(Nprey,exp(rmax_V)/(1+Nprey*(exp(rmax_V)-1)/K),col=alpha('red',1.0))
+}
+
+dev.off()
+
+## without FR data
+
+# For the prey
+rlist = out2$BUGSoutput$sims.list$r_V
+Klist = out2$BUGSoutput$sims.list$K_V
+
+n = length(rlist)
+ndens = 100
+Nprey <- seq(1,50,length=ndens) #density index
+preyDD = matrix(NA,nrow = n, ncol = ndens)
+
+png('Estimated_preyDD_withoutFRdata_reparam.png',res=300,width=2000,height=1000)
+par(mfrow=c(1,2))
+library(scales)
+for (i in 1:n){
+  for (dens in 1:length(Nprey))
+  {
+    preyDD[i,dens] = exp(rlist[i])/(1+(exp(rlist[i])-1)*Nprey[dens]/Klist[i])
+  }
+  if (i == 1){plot(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Prey growth rate',ylim=c(-1,6),xlim=c(1,50),xlab='N prey',main='With (r,K) correlations')
+  }
+  else {lines(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
+  lines(Nprey,exp(rmax_V)/(1+Nprey*(exp(rmax_V)-1)/K),col=alpha('red',1.0))
+}
+
+# what if there was no correlation between parameters? 
+rlist = sample(rlist)
+Klist = sample(Klist)
+for (i in 1:n){
+  for (dens in 1:length(Nprey))
+  {
+    preyDD[i,dens] = exp(rlist[i])/(1+(exp(rlist[i])-1)*Nprey[dens]/Klist[i])
+  }
+  if (i == 1){plot(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Prey growth rate',ylim=c(-1,6),xlim=c(1,50),xlab='N prey',main='Without (r,K) correlations')
+  }
+  else {lines(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
+  lines(Nprey,exp(rmax_V)/(1+Nprey*(exp(rmax_V)-1)/K),col=alpha('red',1.0))
+}
+
+dev.off()
+
+

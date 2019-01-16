@@ -38,7 +38,7 @@ K<-1			# threshold dd
 beta<-1			# density-dependence exponent
 rmax_V<-2			# Max AVERAGE growth rate (thus not a true max...)
 rmax_P<-0.5
-sigma2.proc<-0.05		# worked well with 0.005
+sigma2.proc<-0.05		# worked well with 0.005 as well
 # Process sigma on the log-scale, use the Peretti et al. value. 0.005
 
 
@@ -392,4 +392,84 @@ for (i in 1:n){
 }
 
 dev.off()
+
+
+#### Reproduce the density-dependent curves without and without the correlations between parameters
+# For the prey
+rlist = out$BUGSoutput$sims.list$r_V
+Klist = out$BUGSoutput$sims.list$K_V
+
+n = length(rlist)
+ndens = 100
+Nprey <- seq(1,50,length=ndens) #density index
+preyDD = matrix(NA,nrow = n, ncol = ndens)
+
+png('Estimated_preyDD.png',res=300,width=2000,height=1000)
+par(mfrow=c(1,2))
+library(scales)
+for (i in 1:n){
+  for (dens in 1:length(Nprey))
+  {
+    preyDD[i,dens] = exp(rlist[i])/(1+Nprey[dens]/Klist[i])
+  }
+  if (i == 1){plot(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Prey growth rate',ylim=c(-1,6),xlim=c(1,50),xlab='N prey',main='With (r,K) correlations')
+  }
+  else {lines(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
+}
+
+# what if there was no correlation between parameters? 
+rlist = sample(rlist)
+Klist = sample(Klist)
+for (i in 1:n){
+  for (dens in 1:length(Nprey))
+  {
+    preyDD[i,dens] = exp(rlist[i])/(1+Nprey[dens]/Klist[i])
+  }
+  if (i == 1){plot(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Prey growth rate',ylim=c(-1,6),xlim=c(1,50),xlab='N prey',main='Without (r,K) correlations')
+  }
+  else {lines(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
+}
+
+dev.off()
+
+## without FR data
+
+# For the prey
+rlist = out2$BUGSoutput$sims.list$r_V
+Klist = out2$BUGSoutput$sims.list$K_V
+
+n = length(rlist)
+ndens = 100
+Nprey <- seq(1,50,length=ndens) #density index
+preyDD = matrix(NA,nrow = n, ncol = ndens)
+
+png('Estimated_preyDD_withoutFRdata.png',res=300,width=2000,height=1000)
+par(mfrow=c(1,2))
+library(scales)
+for (i in 1:n){
+  for (dens in 1:length(Nprey))
+  {
+    preyDD[i,dens] = exp(rlist[i])/(1+Nprey[dens]/Klist[i])
+  }
+  if (i == 1){plot(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Prey growth rate',ylim=c(-1,6),xlim=c(1,50),xlab='N prey',main='With (r,K) correlations')
+  }
+  else {lines(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
+}
+
+# what if there was no correlation between parameters? 
+rlist = sample(rlist)
+Klist = sample(Klist)
+for (i in 1:n){
+  for (dens in 1:length(Nprey))
+  {
+    preyDD[i,dens] = exp(rlist[i])/(1+Nprey[dens]/Klist[i])
+  }
+  if (i == 1){plot(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Prey growth rate',ylim=c(-1,6),xlim=c(1,50),xlab='N prey',main='Without (r,K) correlations')
+  }
+  else {lines(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
+}
+
+dev.off()
+
+
 
