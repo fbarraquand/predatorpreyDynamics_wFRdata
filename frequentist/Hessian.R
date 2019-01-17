@@ -231,18 +231,12 @@ options(scipen = 0)
 
 eigen(hessian) ## clearly no zeroes there? 
 # $values
-# [1] 41617.593143 40362.310251 37309.863813 33668.343616 18679.557058 18079.111183    93.263279    12.579849     1.507702
+# [1] 41478.246663 40362.227921 37312.035094 33666.368176 18680.108567 16862.134670    75.108129    12.326374     1.498224
 
 lambda1 = max(eigen(hessian)$values)
 9*lambda1*10^(-9) #way below lowest eigenvalue
 
 # should be reproduced for several simulations later on. 
-
-## --- old comments on previous simus ---- #
-# There is however the question of whether this matrix is positive definite. 
-# (which happens for the Hessian when all eigenvalues are positive) -> I'm not sure in fact. 
-# The last eigenvalue is negative. On the other hand it is very small so we can consider it zero. 
-## ---------------------------------------- #
 
 # Looking at the correlations in the matrix 
 
@@ -266,35 +260,40 @@ theta_true
 p_opt$hessian
 eigen(p_opt$hessian) ### clearly interesting and non zero
 # $values
-# [1] 3334.2367985 2000.8569587 1736.6593414    8.9622937    1.4761840    0.1603394
+# [1] 3346.9992650 2000.8586776 1625.3684593    7.2470990    1.0993765    0.1614776
 # 
 # $vectors
 # [,1]          [,2]          [,3]          [,4]          [,5]          [,6]
-# [1,]  7.739897e-01 -1.080998e-12  4.475014e-12  2.216871e-10 -6.331982e-01  1.602045e-09
-# [2,] -6.331982e-01  2.257642e-12  1.515849e-12  2.719858e-10 -7.739897e-01  1.961642e-09
-# [3,]  2.183674e-12  9.992858e-01  2.420841e-11 -9.492240e-12 -9.464525e-11 -3.778865e-02
-# [4,] -2.225576e-12 -3.778865e-02 -3.714140e-12 -2.153198e-10 -2.530934e-09 -9.992858e-01
-# [5,]  2.562748e-12  2.312261e-11 -9.299362e-01  3.677209e-01  1.253021e-10 -7.665235e-11
-# [6,] -3.279388e-13 -7.693068e-12  3.677209e-01  9.299362e-01  3.277751e-10 -2.014524e-10
+# [1,]  7.725414e-01 -1.637563e-13  1.812814e-12  1.123897e-10 -6.349644e-01 -3.712557e-09
+# [2,] -6.349644e-01  2.852194e-16  1.203261e-12  1.383346e-10 -7.725414e-01 -4.519073e-09
+# [3,]  7.567933e-14  9.992853e-01  7.809808e-12 -4.175188e-12 -2.211775e-10  3.780001e-02
+# [4,] -1.350909e-12 -3.780001e-02 -5.240919e-12 -9.279350e-11 -5.844329e-09  9.992853e-01
+# [5,]  9.624491e-13  7.691070e-12 -9.307156e-01  3.657437e-01  6.325099e-11  2.937278e-11
+# [6,]  7.090222e-13 -2.308098e-12  3.657437e-01  9.307156e-01  1.666449e-10  8.825674e-11
 
 # Let's try from somewhere slightly different
 theta_init = theta_true + rnorm(6,0,sd=0.05)
 p_opt<-optim(theta_init, RSS, y=data,hessian=T)
 p_opt$par
 theta_true
+# > p_opt$par
+# [1]  2.0612266  1.0739755  0.5063395 10.2958375  2.5142004  1.0192181
+# > theta_true
+# [1]  2.0  1.0  0.5 10.0  2.5  1.0
 p_opt$hessian
 eigen(p_opt$hessian) ### clearly interesting and non zero
-#$values
-# [1] 3352.8312867 2000.8570244 1735.5738470    8.9450653    1.2821586    0.1615576
+
+# $values
+# [1] 3251.8365314 2000.8568137 1625.2728372    7.2446891    1.0199015    0.1613022
 # 
 # $vectors
-# [,1]          [,2]          [,3]         [,4]          [,5]          [,6]
-# [1,]  7.718547e-01  2.191974e-12 -1.043386e-12 2.212856e-10 -6.357990e-01 -1.340079e-09
-# [2,] -6.357990e-01 -8.543305e-14 -4.183676e-12 2.691969e-10 -7.718547e-01 -1.625599e-09
-# [3,]  1.715033e-12 -9.992857e-01 -8.596346e-12 1.284783e-11  7.828529e-11 -3.778910e-02
-# [4,] -8.572868e-13  3.778910e-02 -3.438708e-12 2.772205e-10  2.105292e-09 -9.992857e-01
-# [5,]  1.855122e-12  8.737344e-12 -9.298957e-01 3.678232e-01  1.317965e-10  1.055713e-10
-# [6,] -3.522451e-13 -9.151013e-13  3.678232e-01 9.298957e-01  3.226127e-10  2.566702e-10
+# [,1]          [,2]          [,3]          [,4]          [,5]         [,6]
+# [1,]  7.837736e-01  2.290378e-12 -4.314895e-12 -6.754080e-10 -6.210466e-01 3.531534e-09
+# [2,] -6.210466e-01  8.070546e-14 -1.016375e-12 -8.497219e-10 -7.837736e-01 4.456541e-09
+# [3,] -1.751452e-12  9.992858e-01 -1.142597e-11 -1.450107e-11  2.163518e-10 3.778770e-02
+# [4,] -1.372204e-13 -3.778770e-02  4.608813e-12 -3.555505e-10  5.682050e-09 9.992858e-01
+# [5,] -1.956737e-12 -1.040251e-11 -9.307361e-01  3.656915e-01 -3.937041e-10 1.340139e-10
+# [6,]  2.541700e-12  5.221157e-12  3.656915e-01  9.307361e-01 -1.011538e-09 3.296710e-10
 
 
 ###################################################################################################
@@ -304,166 +303,127 @@ eigen(p_opt$hessian) ### clearly interesting and non zero
 # Nope!! There are only 8 elements here, no sigma3!!
 
 theta_true  = c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C,D)
-p_opt<-optim(theta_true, logLik_FRwoutNoise, method="BFGS",y=data,hessian=T)
-p_opt$par
-### BFGS
-# [1]  1.5041455  0.5197072  0.2226370  0.5065558 10.3046050  0.2314249 33.2937812 66.2760413
+p_opt1<-optim(theta_true, logLik_FRwoutNoise, method="BFGS",y=data,hessian=T)
+p_opt1$par
+### BFGS 
+# [1]  1.5515275  0.5574554  0.2226381  0.5064311 10.3011363  0.2314222 43.7378222 92.4917840
+p_opt2<-optim(theta_true, logLik_FRwoutNoise,y=data,hessian=T)
+p_opt2$par
 ### Nelder-Mead
-# [1]  1.9914255  0.9680671  0.2224996  0.5107744 10.4210424  0.2310457  3.2480513  1.8051012
+# [1]  1.9890439  0.9734439  0.2223960  0.5013721 10.1733093  0.2319168  3.4129376  2.5978860
 theta_true
 # [1]  2.0000000  1.0000000  0.2236068  0.5000000 10.0000000  0.2236068  2.5000000  1.0000000
-p_opt$hessian
-# [,1]          [,2]          [,3]          [,4]          [,5]          [,6]          [,7]          [,8]
-# [1,]  2.017933e+04 -1.744166e+04  1.334904e+02 -1.776357e-09  0.000000e+00  3.552714e-09 -9.778635e+02  4.602678e+02
-# [2,] -1.744166e+04  1.508817e+04 -1.271656e+02 -3.552714e-09 -2.309264e-08 -3.552714e-09  8.390894e+02 -3.920669e+02
-# [3,]  1.334904e+02 -1.271656e+02  4.062105e+04 -1.065814e-08  1.421085e-08  2.131628e-08 -9.458752e+00  5.322839e+00
-# [4,] -1.776357e-09 -3.552714e-09 -1.065814e-08  1.871413e+04 -7.040348e+02  2.880262e+01  0.000000e+00 -1.598721e-08
-# [5,]  0.000000e+00 -2.309264e-08  1.421085e-08 -7.040348e+02  2.795303e+01 -2.714926e+00  0.000000e+00 -1.776357e-08
-# [6,]  3.552714e-09 -3.552714e-09  2.131628e-08  2.880262e+01 -2.714926e+00  3.761812e+04  3.552714e-09  3.552714e-09
-# [7,] -9.778635e+02  8.390894e+02 -9.458752e+00  0.000000e+00  0.000000e+00  3.552714e-09  5.381699e+01 -2.630698e+01
-# [8,]  4.602678e+02 -3.920669e+02  5.322839e+00 -1.598721e-08 -1.776357e-08  3.552714e-09 -2.630698e+01  1.318995e+01
-eigen(p_opt$hessian)
-# $values
-# [1] 6.054577e+04 4.031416e+04 3.730971e+04 1.867950e+04 5.779300e+01 1.504246e+00 5.509579e-02
-# [8] 5.308338e-05
-# 
-# $vectors
-# [,1]          [,2]          [,3]          [,4]          [,5]          [,6]
-# [1,]  5.764044e-01 -4.308947e-05  1.260089e-12 -4.883187e-13  8.171292e-01 -2.827274e-10
-# [2,] -8.171589e-01  4.152968e-05  1.139785e-13 -3.081142e-13  5.764101e-01 -2.160426e-10
-# [3,] -5.876738e-05 -1.000000e+00  1.064255e-11 -3.343097e-13 -1.125797e-05  7.715109e-14
-# [4,]  3.740335e-14 -3.318773e-13 -5.056317e-05  9.992864e-01  1.529329e-11  3.777154e-02
-# [5,]  1.881479e-13  9.401594e-14  5.322336e-06 -3.777154e-02  3.893140e-10  9.992864e-01
-# [6,]  6.325077e-13 -1.064259e-11 -1.000000e+00 -5.072812e-05  1.096834e-12  3.408689e-06
-# [7,] -2.766412e-03 -1.958303e-06  2.828092e-13  5.638389e-13 -6.198803e-03  2.891478e-09
-# [8,]  1.282357e-03  3.971253e-07  5.726018e-13  7.743699e-13  3.588536e-03 -4.496595e-09
-# [,7]          [,8]
-# [1,] -7.586655e-03 -5.278368e-04
-# [2,] -1.620123e-03 -3.734781e-04
-# [3,]  2.203137e-06 -4.566506e-07
-# [4,]  1.706311e-10  1.071605e-10
-# [5,]  4.509435e-09  2.859934e-09
-# [6,] -9.924139e-15  6.475621e-13
-# [7,] -9.071098e-01  4.208392e-01
-# [8,]  4.208225e-01  9.071350e-01
 
-#### Nelder-Mead
-# $values
-# [1] 40627.4553092 37618.1668741 35311.2566499 18740.5788017    14.9681016     2.1552563     1.4647539    -0.2764503
-# 
-# $vectors
-# [,1]          [,2]          [,3]          [,4]          [,5]          [,6]          [,7]          [,8]
-# [1,] -2.609296e-02 -1.182946e-12  7.553842e-01 -1.117742e-13  4.023732e-01  4.688183e-01  9.838325e-09 -2.168389e-01
-# [2,]  2.284980e-02  1.033504e-12 -6.531189e-01 -1.290197e-13  5.113473e-01  5.015502e-01  1.072476e-08 -2.447141e-01
-# [3,] -9.993972e-01  7.189136e-12 -3.471459e-02  5.128058e-13  7.714872e-05  1.989578e-04  3.735806e-12 -9.823869e-05
-# [4,]  4.875137e-13 -1.527377e-03  4.445520e-14  9.992918e-01 -5.565064e-11 -6.339617e-10  3.759676e-02  2.314851e-10
-# [5,] -3.705045e-13  1.008307e-04  4.041092e-13 -3.759665e-02 -1.491911e-09 -1.685328e-08  9.992930e-01  6.134774e-09
-# [6,] -7.131091e-12 -9.999988e-01 -1.818651e-12 -1.530088e-03 -3.962634e-14 -7.965266e-13  4.333509e-05  1.493318e-13
-# [7,]  1.334819e-03 -4.242448e-14 -3.649754e-02  9.164045e-16 -6.113728e-01  7.270867e-01  9.445264e-09  3.102167e-01
-# [8,] -6.481256e-04 -1.180791e-13  1.712617e-02 -8.180576e-13  4.503811e-01 -1.299384e-03 -4.829758e-09  8.926710e-01
+### Nelder-Mead is suprisingly better here
 
-######### Estimation starting away from MLE ########
-theta_init = theta_true + rnorm(8,0,sd=0.05)
-p_opt<-optim(theta_init, logLik_FRwoutNoise,method="BFGS", y=data,hessian=T)
-p_opt$par
+eigen(p_opt1$hessian) ## BFGS
+# $values
+# [1] 5.656082e+04 4.031409e+04 3.731116e+04 1.867995e+04 4.961284e+01 1.501037e+00 2.920489e-02 2.392860e-05
+lambda1 = max(eigen(p_opt1$hessian)$values)
+9*lambda1*10^(-9) #0.0005090474 #so the last eigenvalue is zero
+
+eigen(p_opt2$hessian) ## Nelder-Mead
+# $values
+# $values
+# [1]  4.073766e+04  3.691639e+04  3.521076e+04  1.860057e+04  1.470314e+01  3.518293e+00  1.532745e+00 -9.594615e-03
+lambda1 = max(eigen(p_opt2$hessian)$values)
+9*lambda1*10^(-9) ## 0.000366639 = 3e-4 so the last eigenvalue is not zero. 
+
+######### Estimation starting away from MLE rather than exactly at MLE ########
+######### Useful to investigate if/why Nelder-Mead does so good a job  ########
+
+theta_init = theta_true + rnorm(8,0,sd=0.05) ## a little further away?
+theta_init
+theta_init = theta_true*(1+rnorm(8,0,sd=0.1)) ## not practical
+### Crafting a new theta-init with reasonable a priori errors
+theta_init = c(3,0.5,0.75,1,5,0.75,4,5)
+
+p_opt1<-optim(theta_init, logLik_FRwoutNoise,method="BFGS", y=data,hessian=T)
+p_opt1$par
 theta_true
 theta_init
-p_opt$hessian
-eigen(p_opt$hessian)
-### BFGS
-#$values
-#[1] 6.193873e+04 4.032005e+04 3.731044e+04 1.867967e+04 6.016344e+01 1.507778e+00 1.812701e-02
-#[8] 9.703971e-06
-### Looks like BFGS performs worse than Nelder-Mead without the FR data (see below as well)
+# [1]  1.5718984  0.5730893  0.2226600  0.5067040 10.3083510  0.2314212 26.0655759 53.0488133
+# > theta_true
+# [1]  2.0000000  1.0000000  0.2236068  0.5000000 10.0000000  0.2236068  2.5000000  1.0000000
+# > theta_init
+# [1] 3.00 0.50 0.75 1.00 5.00 0.75 4.00 5.00
 
-### Nelder-Mead
-#$values
-#[1]  4.013941e+04  3.727161e+04  3.536148e+04  1.867194e+04  1.933835e+01  4.327331e+00  1.533097e+00 -4.063515e-02
-### Seems better starting a little further away. May be need to be repeated
-
-theta_init = theta_true + rnorm(8,0,sd=0.05)
-p_opt<-optim(theta_init, logLik_FRwoutNoise,method="BFGS",y=data,hessian=T)
-p_opt$par
-theta_true
-theta_init
-p_opt$hessian
-eigen(p_opt$hessian)
-### BFGS
-#$values
-#[1] 6.037045e+04 4.031188e+04 3.731284e+04 1.868018e+04 5.741190e+01 1.513332e+00 5.721312e-02
-#[8] 5.451893e-05
+eigen(p_opt1$hessian) ### BFGS
 # $values
-# [1] 40942.1328803 36579.3709513 33872.4695387 18511.1139219    19.6803090     2.9133301     1.2436616    -0.2908425
-### Seems like quite of bit of these estimates of last eigenvalue are negative. 
-diag(solve(p_opt$hessian)) ### produces a number of negative variance estimates. 
+# [1] 5.505953e+04 4.030562e+04 3.731199e+04 1.868010e+04 4.707488e+01 1.498589e+00 8.201987e-02 1.141953e-04
+lambda1 = max(eigen(p_opt1$hessian)$values)
+9*lambda1*10^(-9) ### 0.0005090474 -- close to zero. 
+diag(solve(p_opt1$hessian)) ## positive values though
+### Looks like BFGS performs worse than Nelder-Mead without the FR data (see below)
+
+p_opt2<-optim(theta_init, logLik_FRwoutNoise, y=data,hessian=T)
+p_opt2$par
+eigen(p_opt2$hessian) ### Nelder-Mead
+# $values
+# [1] 42784.648389 39426.476918 30604.638451 18749.117486    46.054877     3.689130     2.639528    -0.111515
+### Less good than wwhen starting at the maximum but still fairly reasonable
+
 ## Beware that we use -LL, so Hessian = observed FIM (Fisher Information Matrix)
-## Loop over datasets to obtain the true, expected FIM?
+## Should we loop over datasets to obtain the true, expected FIM?
 
 ######## Estimation from RSS ################
 theta_true  = c(rmax_V,1/K,rmax_P,Q,C,D)
-p_opt<-optim(theta_true,RSS_FRwoutNoise, y=data,hessian=T)
-p_opt$par
-theta_true
-p_opt$hessian
-eigen(p_opt$hessian) ### clearly interesting and non zero? (inluding the last one?)
-# $values
-# [1] 3344.31352989 2000.86370062    1.73515380    0.38035271    0.16121792   -0.00985483
-# $vectors
-# [,1]          [,2]          [,3]          [,4]          [,5]          [,6]
-# [1,]  7.728650e-01 -6.748275e-12 -4.098421e-01  4.651301e-01  2.680788e-09  1.355107e-01
-# [2,] -6.330323e-01  1.050155e-12 -5.502109e-01  5.191807e-01  3.818701e-09  1.642847e-01
-# [3,] -5.951248e-12 -9.992841e-01 -2.332476e-10 -2.002480e-10 -3.783315e-02  7.145223e-10
-# [4,]  3.866315e-13  3.783315e-02 -6.257578e-09 -5.249541e-09 -9.992841e-01  1.886142e-08
-# [5,] -4.011429e-02  1.187677e-12  5.917052e-01  7.025929e-01 -1.481861e-08 -3.932418e-01
-# [6,]  1.845706e-02 -1.824998e-12 -4.232994e-01 -1.430688e-01 -1.348010e-08 -8.944318e-01
-
-## The last two parameters may be a little linked? Negative eigenvalue but this may in fact be zero? 
-
-theta_init = theta_true + rnorm(6,0,sd=0.05)
-p_opt<-optim(theta_init, RSS, y=data,hessian=T)
+p_opt<-optim(theta_init,RSS_FRwoutNoise, y=data,hessian=T)
 p_opt$par
 theta_true
 theta_init
-#No obvious influence of theta_init on the results
-p_opt$hessian
-eigen(p_opt$hessian) ### clearly interesting and non zero
-# $values
-# [1] 3324.3545403 2000.8370768 1736.7462917    8.9679044    1.3913928    0.1586457
-# $vectors
-# [,1]          [,2]          [,3]          [,4]          [,5]          [,6]
-# [1,]  7.751464e-01 -1.888266e-12  1.748739e-13 -7.603514e-12 -6.317817e-01  1.496517e-09
-# [2,] -6.317817e-01  4.366499e-12 -2.381479e-12 -1.538362e-11 -7.751464e-01  1.837078e-09
-# [3,] -4.196303e-12 -9.992907e-01  1.514892e-12  1.713220e-11  8.703747e-11  3.765710e-02
-# [4,]  7.709085e-13  3.765710e-02  5.252822e-12  4.526253e-10  2.367879e-09  9.992907e-01
-# [5,]  1.177811e-13 -1.195932e-12 -9.298648e-01  3.679013e-01 -4.540579e-12 -1.617067e-10
-# [6,] -4.160374e-12  5.543679e-13  3.679013e-01  9.298648e-01 -1.619357e-11 -4.231339e-10
+# p_opt$par
+# [1]   4.0791051   8.5632770   0.4753874   9.4701785   7.2905113   6.1694545 -12.9474382   2.6903906
+# > theta_true
+# [1]  2.0  1.0  0.5 10.0  2.5  1.0
+# > theta_init
+# [1] 3.00 0.50 0.75 1.00 5.00 0.75 4.00 5.00
+### This is actually not very good. 
 
+p_opt$hessian
+eigen(p_opt$hessian) ### clearly interesting and non zero? (inluding the last one?)
 # $values
-# [1] 3288.9438361 2000.8565182 1730.1249428    8.8419892    0.6927461    0.1618371
+# [1] 2026.57979293 2001.05550390    0.28303556    0.19744008    0.04618698    0.00000000    0.00000000   -0.01026505
+## Negative eigenvalue but this may in fact be zero? Pb here. 
+
+p_opt<-optim(theta_init, RSS, y=data,method="BFGS",hessian=T)
+p_opt$par
+theta_true
+theta_init
+# [1]  2.0298227  1.0349085  0.5066157 10.3060164  2.5146345  1.0202954  4.0000000  5.0000000
+# > theta_true
+# [1]  2.0  1.0  0.5 10.0  2.5  1.0
+# > theta_init
+# [1] 3.00 0.50 0.75 1.00 5.00 0.75 4.00 5.00
+### This time it works better with BFGS it seems. Or does it? 
+eigen(p_opt$hessian)
+# $values
+# [1] 3333.4379120 2000.8544900 1624.7208034    7.2369413    1.2214526    0.1606015    0.0000000    0.0000000
 # 
 # $vectors
-# [,1]          [,2]          [,3]          [,4]          [,5]          [,6]
-# [1,]  7.793633e-01 -2.303427e-12  3.370507e-12 -5.139319e-10 -6.265723e-01 -6.975312e-09
-# [2,] -6.265723e-01 -4.417751e-12 -2.509825e-13 -6.387047e-10 -7.793633e-01 -8.678396e-09
-# [3,]  9.214957e-13 -9.992859e-01 -2.733869e-11 -3.403855e-11 -4.158298e-10  3.778575e-02
-# [4,] -1.376074e-12  3.778575e-02 -9.480527e-12 -9.308575e-10 -1.112639e-08  9.992859e-01
-# [5,]  2.716018e-12  2.550093e-11 -9.299939e-01  3.675749e-01 -3.031194e-10  3.326169e-10
-# [6,] -7.025175e-13 -8.833045e-12  3.675749e-01  9.299939e-01 -7.617032e-10  8.701316e-10
+# [,1]          [,2]          [,3]          [,4]          [,5]          [,6] [,7] [,8]
+# [1,]  7.741023e-01  5.202697e-12 -1.676635e-12 -3.333724e-10 -6.330605e-01 -1.268594e-09    0    0
+# [2,] -6.330605e-01 -2.100985e-12 -1.974447e-12 -4.104674e-10 -7.741023e-01 -1.549797e-09    0    0
+# [3,]  5.387892e-12 -9.992864e-01  5.897838e-12  9.367340e-12 -7.731644e-11  3.777234e-02    0    0
+# [4,]  7.036003e-13  3.777234e-02  2.565462e-12  3.079372e-10 -2.001306e-09  9.992864e-01    0    0
+# [5,] -6.978705e-13 -6.225881e-12 -9.307386e-01  3.656853e-01 -1.909597e-10 -1.100637e-10    0    0
+# [6,] -1.645111e-12  6.383782e-15  3.656853e-01  9.307386e-01 -4.931110e-10 -2.877529e-10    0    0
+# [7,]  0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00    0    1
+# [8,]  0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00    1    0
 
-#### some percentage has negative eigenvalues but way less than before with the likelihood I think
+#################### Computation of Hessian at the true parameter values ######################
 
-solve(p_opt$hessian)
+### There's of course the question of whether it is better to compute the Hessian 
+### (aka observed Fisher Information Matrix, computed at the MLE)
+### or the Hessian for the true parameter values? 
 
-################################ Computation of Hessian #######################################################
+### If the time series is very long and the process ergodic *or* if we average over simulations, 
+### we end up computing the expected Hessian = true FIM , for the true parameter values. 
 
-### Computation at the true parameter values
-### There's of course the question of whether it is better to compute the Hessian
-### for the true param values or at the MLE (which might be slightly different on a finite time series). 
-
-### In Gimenez et al. Animal Biodiversity and Conservation 27.1 (2004) They use the MLE.
+### In Gimenez et al. Animal Biodiversity and Conservation 27.1 (2004) they the observed FIM. 
 ### But for a theoretical work, what should we use? 
 
-### Use other algorithm to compute the Hessian exactly at the true value
+### Use another algorithm to compute the Hessian exactly at the true value -- without optim() then
 library("numDeriv")
 
 theta_true  = c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C,D,sqrt(0.05))
@@ -471,17 +431,14 @@ LL = function(theta){
   return(logLik(theta,data))
 }
 LL(theta_true)
-
+# -223.51
 hessian_thetaTrue=hessian(LL,theta_true)
 eigen(hessian_thetaTrue)
+# $values
+# [1] 44294.175692 39378.566113 37850.532888 34120.067394 19976.032031 16291.064713    73.163052     6.801572     1.877072
 ## SD error
 sqrt(diag(solve(hessian_thetaTrue)))
-#[1] 0.243049234 0.288849849 0.005040121 0.028748093 0.728317339 0.004755960 0.043872686 0.110662255 0.005165725
-
-#$values
-# [1] 44294.175086 39378.550751 37848.716366 34111.484789 19976.028177 16277.744431    70.872841
-# [8]     7.018634     1.882450
-# 
+#[1] [1] 0.246939072 0.293385800 0.005040127 0.028788660 0.729359915 0.004756012 0.043196118 0.108919768 0.005146236
 
 ### Removing last parameter for test with LL_FRwoutNoise
 theta_true  = c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C,D)
@@ -492,9 +449,8 @@ LL_FRwoutNoise = function(theta){
 
 hessian_thetaTrue_FRwoutNoise=hessian(LL_FRwoutNoise,theta_true)
 eigen(hessian_thetaTrue_FRwoutNoise)
-
 # $values
-# [1] 4.429418e+04 3.966980e+04 3.419146e+04 1.997603e+04 2.326595e+01 6.332812e+00 1.882450e+00 1.473978e-02
+# [1]  4.429418e+04  3.969325e+04  3.419572e+04  1.997603e+04  1.825568e+01  3.140147e+00  1.877072e+00 -7.990887e-02
 ### Still a question of whether the last one is positive or not... 
 
 ### Using Viallefond et al.'s criteria
@@ -502,16 +458,13 @@ lambda1 = max(eigen(hessian_thetaTrue_FRwoutNoise)$values)
 q = 8
 eps = 10^(-9)
 eigen(hessian_thetaTrue_FRwoutNoise)$values>q*lambda1*eps
-# TRUE here
-
-# Previously we had an error changing these $values
-# [1]  4.429418e+04  3.966980e+04  3.419146e+04  1.997603e+04  2.326595e+01  6.332812e+00
-# [7]  1.882450e+00  1.473978e-02 -4.179847e-23
+# FALSE here
 
 eigen_FRwoutNoise=eigen(hessian_thetaTrue_FRwoutNoise)
 #eigenvector associated with near-zero eigenvalue
 eigen_FRwoutNoise$vectors[,8]
-#largest link between C and D. Or is this correct? -> what's the new basis? 
+# [1] -1.666351e-01 -1.963420e-01 -5.513071e-05 -1.499877e-13 -3.446900e-12 -2.555706e-14  3.464293e-01  9.020362e-01
+#largest link between C and D. After that, between r and K. 
 
 ################# Redo the same analysis with sum of squares #################
 
@@ -520,46 +473,41 @@ RSS_bis = function(theta){
   return(RSS(theta,data))
 }
 RSS_bis(theta_true)
-
 hessian_RSS_thetaTrue=hessian(RSS_bis,theta_true)
 eigen(hessian_RSS_thetaTrue)
 # $values
-# [1] 3411.9132542 2000.9252194 1631.3533267    7.1423266    0.7019349    0.1882889
+# [1] 3412.7730513 2000.9256614 1632.9214503    7.3169044    0.6802283    0.1877551
 
 # Now for the model with FR without noise
-
 RSS_bis_FRwoutNoise = function(theta){
   return(RSS_FRwoutNoise(theta,data))
 }
 RSS_bis_FRwoutNoise(theta_true)
-
 hessian_RSS_thetaTrue_FRwoutNoise=hessian(RSS_bis_FRwoutNoise,theta_true)
 eigen(hessian_RSS_thetaTrue_FRwoutNoise)
 # $values
-# [1] 3.419685e+03 2.000925e+03 2.328096e+00 6.335312e-01 1.882889e-01 1.475940e-03
+# [1]  3.419920e+03  2.000926e+03  1.825577e+00  3.140665e-01  1.877551e-01 -7.978823e-03
 # 
 # $vectors
 # [,1]          [,2]          [,3]          [,4]          [,5]          [,6]
-# [1,]  7.642358e-01 -5.185763e-15  5.166907e-01 -3.764703e-01 -1.339072e-11 -8.511460e-02
-# [2,] -6.433480e-01  1.123952e-14  6.521352e-01 -3.883610e-01 -1.487730e-11 -9.999365e-02
-# [3,]  9.900002e-15  9.992687e-01  2.487080e-13 -8.519244e-13  3.823704e-02 -7.097592e-13
-# [4,] -3.011594e-15 -3.823704e-02  7.151991e-12 -2.188996e-11  9.992687e-01 -1.699767e-11
-# [5,] -4.182289e-02 -1.298747e-15 -4.654567e-01 -8.059012e-01 -8.139938e-12  3.634889e-01
-# [6,]  1.726023e-02  6.557340e-14  3.018285e-01  2.407676e-01  1.880481e-11  9.222975e-01
+# [1,]  7.642811e-01 -8.053068e-14 -3.777157e-01  4.954033e-01  4.710235e-11  1.666759e-01
+# [2,] -6.432938e-01 -4.846036e-14 -5.024479e-01  5.432783e-01  5.197209e-11  1.963870e-01
+# [3,] -3.065831e-14 -9.992686e-01 -3.229404e-14  3.404351e-12 -3.823992e-02  2.723379e-13
+# [4,]  9.353924e-16  3.823992e-02 -2.447700e-12  9.063696e-11 -9.992686e-01  7.462877e-12
+# [5,] -4.183903e-02  2.311070e-15  6.490927e-01  6.759797e-01  5.713693e-11 -3.463806e-01
+# [6,]  1.723317e-02 -1.167274e-14 -4.284339e-01 -4.975591e-02 -1.020057e-11 -9.020376e-01
 
 q = 6
 lambda1 = max(eigen(hessian_RSS_thetaTrue_FRwoutNoise)$values)
 eigen(hessian_RSS_thetaTrue_FRwoutNoise)$values>q*lambda1*eps
-## Compare to singular value decomposition
+## [1]  TRUE  TRUE  TRUE  TRUE  TRUE FALSE
+## Compare to singular value decomposition just to check that it is similar
 eigen(hessian_RSS_thetaTrue_FRwoutNoise)$values
 svd(hessian_RSS_thetaTrue_FRwoutNoise)$d
 
-### Looks much better -- the last eigenvalue is fairly weak compared to the others though
 ### The last eigenvector suggests a linkage between the last two elements 
 ### Keep in mind that it is because these elements belong to the "null" space eigenvector that they indicate linkage. 
 ### These are C and D, which makes sense based on previous results. 
-
-### Or can we use the different orders of magnitude for the eigenvalues here? 
 
 ### Clearly that's a different value from the one that we get at MLE, though there are some similarities
 ### in the spectra of the Hessian matrix at theta_true vs theta_hat. 
@@ -571,6 +519,6 @@ svd(hessian_RSS_thetaTrue_FRwoutNoise)$d
 
 ########################### Profiles of the likelihood near theta_true ##################################
 
-
+### See Likelihood_gaussianNoiseonFR.R file. 
 
 
