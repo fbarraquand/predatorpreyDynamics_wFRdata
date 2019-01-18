@@ -1,13 +1,15 @@
-### FB 12/03/2018 - classic predator-prey model fit with no noise on functional response data
+############### Discrete-time RMA predator-prey model ###########################################
 ### FB 13/11/2017 - predator-prey model with noisy functional response data
 ### Writes down the likelihood of the model under the assumption of Gaussian noise on the FR
 ### 24/11/2017 Rosenzweig-MacArthur version -- should improve fitting but doesnt seem to 
+### FB 12/03/2018 - back to classic predator-prey model fit with no noise on functional response data
+### FB 16/01/2019 -- edited so that functional response timing match math model (no delays)
 
 rm(list=ls())
 graphics.off()
 
 ### Model used (use stored simulated data later on, just tryouts for now)
-n.years<-100  	# Number of years - 25 first, perhaps use 50 or 100 / worked very well with almost no process error on the real scale
+n.years<-1000  	# Number of years - 25 first, perhaps use 50 or 100 / worked very well with almost no process error on the real scale
 N1<-1			# Initial pop size
 P1<-0.1
 K<-100			# threshold dd 1/K
@@ -39,9 +41,9 @@ rP<-rnorm(n.years-1,rmax_P,sqrt(0.01))
 
 for (t in 1:(n.years-1)){
  
-  FR[t+1]<-max(C*N[t]/(D+N[t]),0) #+ FRnoise[t+1],0.0)
   N[t+1]<-N[t]*(exp(rV[t]-(N[t]/K)^beta -FR[t]*P[t]/N[t]) + 0.01) #+0.01 to maintain the prey pop positive
   P[t+1]<-P[t]*exp(rP[t] + epsilon*FR[t])
+  FR[t+1]<-max(C*N[t+1]/(D+N[t+1]),0.0001) #+ FRnoise[t+1],0.0)
 }
 ## Plotting time series of abundances and FR
 par(mfrow=c(2,2))
@@ -49,7 +51,7 @@ plot(1:n.years,N,type="b")
 plot(1:n.years,P,type="b")
 #curve(dbeta(x,a,b),from=0, to=1)
 plot(N,FR)
-
+plot(log(N),log(P))
 ### Produce dataset to fit
 #data = cbind(log(N),log(P),FR) 
 data = cbind(log(N),log(P)) 
@@ -111,7 +113,7 @@ p_opt<-optimx(theta_start, logLik, y=data,hessian=T)
 ## Always same warnings -> In log(1 + theta[2] * N_t) : NaNs produced
 
 ### Let's try something extreme 
-theta_true  = c(rmax_V,1/K,sqrt(0.05),rmax_P,epsilon,sqrt(0.05),D,C,sqrt(0.05))
+theta_true  = c(rmax_V,1/K,sqrt(0.05),rmax_P,epsilon,sqrt(0.05),C,D,sqrt(0.05))
 p_opt<-optim(theta_true, logLik, y=data,method="BFGS",hessian=T)
 p_opt$par
 theta_true
