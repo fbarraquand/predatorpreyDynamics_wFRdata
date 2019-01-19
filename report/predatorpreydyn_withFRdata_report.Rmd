@@ -1,0 +1,195 @@
+---
+title: Progress report -- Fitting stochastic predator-prey models with and without functional response data
+author: "Frederic Barraquand, Olivier Gimenez"
+date: "January 19, 2018"
+output:
+  pdf_document: default
+  number_sections: yes
+  word_document: null
+  citation_package: natbib
+  keep_tex: true
+header-includes:
+- \usepackage{setspace}
+- \doublespacing
+- \usepackage{lineno}
+- \linenumbers
+- \usepackage[authoryear]{natbib}
+csl:  /home/frederic/Dropbox/database/ecology-letters.csl
+bibliography: /home/frederic/Dropbox/database/total.bib
+---
+
+### Abstract
+
+Asking whether parameters can be identified from a given dataset is an important step in the model development process. Most predator-prey model fitting has attempted inverse modelling, identifying parameters solely from time series. Here, we aim at identifying the potential benefits of combining data when both growth and attack processes are viewed as stochastic. We fit a stochastic predator-prey model of the Leslie type to time series and functional response data simulated from the model. Our model has both environmental stochasticity in the growth rates and interaction stochasticity, i.e. a stochastic functional response.  We examine what the FR data brings to the quality of the estimates, and whether estimation is possible (for various time series length) solely with time series data. Both bayesian and frequentist estimation are performed, and in both cases we report diagnostics of identifiability of the various parameters. 
+[stuff on results here]. Our framework to combine data sets is general may be extended to other interaction scenario when both data on interaction rates and population counts are available. 
+
+# Introduction
+
+*tentative list*
+
+* Many attempts to fit predator-prey models to data assume observation stochasticity and do inverse modelling. Inverse modelling from time series can be hard due to identifiability issues, is therefore fraud with some uncertainties. Even in simple, phenomenological statistical models for two species, there can remain considerable uncertainty about the model parameters. 
+
+* One way to decrease uncertainty is to use combination of data sets to decrease that uncertainty on the parameters.  
+
+* This may be best done in a fully stochastic context: there is widespread environmental stochasticity (which may dominate). REFs stochastic predator-prey models. 
+
+* Stochasticity also affects the functional response for various reasons. Point clouds are anything but just a type II curve. Considering the FR as a stochastic object is both biologically realistic and statistically convienient. 
+
+* Here we consider a ground truth model with both stochasticity in growth rates and interactions parameters. The model is fitted time series and functional response data in both frequentist and bayesian settings. 
+
+* We consider both long time series, close to perfect information (T=1000) and time series of realistic ecological length (T= 100, T = 50 or 25). [the latter two remain to be done]. Yet to do: we vary the percentage of data points attributed to the time series vs the functional response. 
+
+# Models and statistical methods
+
+## Predator-prey model in discrete time
+
+We chose a model with a numerical response of the Leslie type (though similar analyses can be done for Lotka-Volterra or Rosenzweig MacArthur models can be done as well, see Supplement S1). A Beverton-Holt type density-dependence for the prey was chosen to avoid cycles in the prey in absence of the predator, so that the model behaviour is more reminiscent of its continuous-time counterpart (see Frank et al's article for more on connecting continous to discrete time models). Our model writes 
+
+
+\begin{eqnarray}
+N_{t+1} & = & N_{t}\frac{e^{r+\epsilon_{1t}}}{1+\gamma N_{t}}\exp\left(-G(N_{t})\frac{P_{t}}{N_{t}}\right),\,\epsilon_{1t}\sim\mathcal{N}(0,\sigma_{1}^{2})\label{eq:prey_discreteLeslieMay}
+\end{eqnarray}
+
+
+\begin{eqnarray}
+P_{t+1} & = & P_{t}\frac{e^{s+\epsilon_{2t}}}{1+qP_{t}/N_{t}},\,\epsilon_{1t}\sim\mathcal{N}(0,\sigma_{1}^{2})\label{eq:predator_discreteLeslieMay}
+\end{eqnarray}
+
+The roots of this model can be traced back to Leslie (1948), Leslie and Gower (1960). Parameter values were loosely inspired by rodents (e.g. Turchin & Hanski 1997, also using a Leslie-type numerical response). The division by $N_t$ in $exp(-G(N_t)P_t/N_t)$ expresses the fact that all terms within the exponential are on the prey fitness (per capita mortality) scale. This is similar to assuming a Nicholson-Bailey type predation term (Weide et al.).    
+
+Until now, we have not specified a model for the functional response $G(N_{t})$. With a deterministic functional response (FR), we have a classic stochastic predator-prey model with log-normal environmental noise but an otherwise `deterministic skeleton'. However, here we consider a data-generating process where the functional response is not deterministic but itself stochastic.  
+
+\begin{equation}\label{eq:FR}
+G_{t}|N_t\sim\mathcal{N}(\mu_{3t},\sigma_{3}^{2}),\;\mu_{3t}=\frac{CN_{t}}{D+N_{t}}
+\end{equation}
+
+
+This corresponds to a case where there is mild Gaussian fluctuations around the functional response. Because there can be substantial noise on the FR (see e.g. plots in [REFs there]), we also consider cases where the parameters $C$ and $D$ are themselves allowed to vary in time in Appendix S2 [I was thinking to only do this in a bayesian setting for the estimation part]. 
+
+## General statistical methodology
+
+Although we apply here data integration to a predator-prey case, the methodology is general and can in principle be applied to any auxiliary information (interaction rate, demographic rate) which is available over time and not simply produced by the count data. 
+
+Let us illustrate with the predator-prey case where log-densities for both predator and prey are gathered in a vector $\mathbf{x}_{t}=(\ln(N_{t}),\ln(P_{t}))^{T}$. Auxiliary information on the functional response, or rather the observed kill rate per predator is denoted $G_t$. To this can be added other demographic rates $R_{t} that are stacked in a vector as well, $\mathbf{a}_{t}=(G_{t}, R_{t})$. Currently
+we use $\mathbf{a}_{t}=G_{t}$ but it may useful to add more information in other applications; hence the derivation is kept general.
+
+We consider a discrete-time dynamical system (nonlinear difference equation). The population dynamics part of the model gives us the probability law of $\mathbf{x}_{t+1}|(\mathbf{x}_{t},\mathbf{a}_{t})$. We also know the law of $\mathbf{a}_{t}|\mathbf{x}_{t}$ (in our case, the functional response). We can therefore write down easily the joint likelihood for both data sources in quite general terms, denoting $\mathbf{X}=(\mathbf{x}_{1},...,\mathbf{x}_{t_{m}})$ and $\mathbf{A}=(\mathbf{a}_{1},...,\mathbf{a}_{t_{m}})$: 
+
+\begin{equation}
+\mathcal{L}(\mathbf{X},\mathbf{A})=p(\mathbf{x}_{1},\mathbf{a}_{1})\prod_{t=1}^{t_{m}-1}p_{C}(\mathbf{x}_{t+1},\mathbf{a}_{t+1}|\mathbf{x}_{t},\mathbf{a}_{t})
+\end{equation}
+
+where $p(y)$ and $p_{C}(y)$ are continuous probability densities
+for the vector $(\mathbf{x},\mathbf{a})$ and its conditional pdf,
+respectively. The conditional pdf can be further decomposed using
+the chain rule
+
+\[
+p(\mathbf{x}_{t+1},\mathbf{a}_{t+1}|\mathbf{x}_{t},\mathbf{a}_{t})=p_{2}(\mathbf{a}_{t+1}|\mathbf{x}_{t+1},\mathbf{x}_{t},\mathbf{a}_{t})\times p_{1}(\mathbf{x}_{t+1}|\mathbf{a}_{t},\mathbf{x}_{t})=p_{2}(\mathbf{a}_{t+1}|\mathbf{x}_{t+1})\times p_{1}(\mathbf{x}_{t+1}|\mathbf{a}_{t},\mathbf{x}_{t})
+\]
+
+
+where $p_{1}(y)$ is given by the dynamical system and $p_{2}(y)$
+is the functional response model (or a demographic model). We therefore
+end up with a model
+
+\begin{equation}
+\mathcal{L}(\mathbf{X},\mathbf{A})=p_{1}(\mathbf{a}_{1}|\mathbf{x}_{1})p(\mathbf{x}_{1})\prod_{t=1}^{t_{m}-1}\underbrace{p_{1}(\mathbf{x}_{t+1}|\mathbf{a}_{t},\mathbf{x}_{t})}_{\text{dynamical system}}\times\underbrace{p_{2}(\mathbf{a}_{t+1}|\mathbf{x}_{t+1})}_{\text{auxiliary information model}}
+\end{equation}
+
+
+where we swapped $p_{1}$ and $p_{2}$ to get the dynamical system model first. 
+
+## Application to the stochastic predator-prey model
+
+In the simplest case highlighted by our discrete-time dynamical systems of the sections above, $p_{1}(y)=p_{11}(x_{1})p_{12}(x_{2})$ is the product of the two gaussian pdf for log-densities conditional on past densities. Using the equations \ref{eq:prey_discreteLeslieMay}-\ref{eq:predator_discreteLeslieMay}, we have 
+
+\begin{equation}
+n_{t+1}|\mathbf{x}_{t}=\ln(N_{t+1})|\mathbf{x}_{t}\sim\mathcal{N}(\mu_{1t},\sigma_{1}^{2})\,\,,\mu_{1t}=n_{t}+r-G_{t}\frac{P_{t}}{N_{t}}-\ln(1+\gamma N_{t})
+\end{equation}
+
+\begin{equation}
+p_{t+1}|\mathbf{x}_{t}=\ln(P_{t+1})|\mathbf{x}_{t}\sim\mathcal{N}(\mu_{2t},\sigma_{2}^{2})\,\,,\mu_{2t}=p_{t}+s-\ln(1+qP_{t}/N_{t})
+\end{equation}
+
+with a functional response model ($p_{2}$) also given by a Gaussian pdf (in the simplest case where we assume near Gaussian noise on the FR, see Discussion)
+
+\[
+G_{t}|\mathbf{x_{t}}\sim\mathcal{N}(\mu_{3t},\sigma_{3}^{2}),\;\mu_{3t}=\frac{CN_{t}}{D+N_{t}}
+\]
+
+### Model scenarios 
+
+We considered the following parameter sets for the model [illustration needed, 4 panels: (N(t), P(t), F(N), N vs P) for each parameter, illustrate the first one in the MS, second one in Appendix?]
+
+| Parameter     | Quasi-cycles      | Noisy LC  |
+| ------------- |:-------------:| -----:|
+| C             | 2.5 | 0 |
+| D             | 1   |  |
+| Q             | 10  |  |
+
+The rest of the parameters are [fill in there]. 
+
+The first parameter set corresponds to a forced focus or quasi-cycles, i.e. sustained oscillations that arise the interaction between noise and dampened oscillations to the fixed point in the deterministic model. We also consider a noisy limit cycle, i.e., parameters that give rise to a limit cycle without the noise, so that the cycle is still very regular but perturbed by the noise. 
+
+These two sets of parameters are crossed with several modalities of data availability:
+- we consider a time series length T=1000, 100 [should I add 50 and 25?]
+- we consider that we have functional response data over 100%, 25%, or 0% of the time series data. This is meant to emulate common scenarios in which the kill rates are not monitored over the whole time series, and quantify the benefits of adding just a little FR data. 
+
+Note that in the case without FR data, we fit the model without noise in the functional response [this is something we need to discuss in depth Olivier], which is what is usually done in this case (Ellner & Turchin 2000, newer stuff). 
+
+For each parameter x data availability scenario, we fit the models in both bayesian and frequentist settings. 
+
+## Model fitting implementation
+
+We fitted the model by MCMC in JAGS and also derived mathematically its likelihood, which we then optimised using the BFGS algorithm [see comments below on Nelder-Mead as well] with optim() in R. Several starting values were considered. 
+
+Identifiability was inspected in different ways. In a frequentist setting, we computed the Hessian matrix $H(\theta,Y)$ where $Y = (X,A)$ following eq. XX, at the estimated parameter set value $\hat{\theta}$. Non-zero eigenvalues of the Hessian - the observed Fisher Information Matrix (FIM) - typically translate into identifiable models (REFs). We also compute the expected FIM at the true parameter value. This value is relevant theoretically because $\theta \sim \mathcal{N}(\theta_{\text{true}},\mathcal{I(\theta_{\text{true}})}^{-1})$ where $\mathcal{I}(\theta_{\text{true}})$ is the FIM. In the case where the time series length $T \rightarrow \infty$, $H(\theta,Y^T) \rightarrow \mathcal{I(\theta_{\text{true}})}$ [should I try to prove this properly btw??]. 
+
+We also computed the expected pairwise correlation between the parameters: the variance-covariance matrix of the parameters $\Sigma = H^{-1}$ so that we get easily the expected pairwise parameter correlation matrix $(\rho_{ij})$ with each element defined as $\frac{\Sigma_{ij}}{\sqrt{\Sigma_{ii}\Sigma_{jj}}}$.  
+
+In a bayesian setting, we inspected the correlations in the Markov chains for pairs of parameters, which translates into pair posterior distributions of parameters. Parameters whose chains were too positively or negatively correlated were considered not identifiable separately.  
+
+## Results
+
+[so far this is very preliminary and I do not consider all the abovementioned modalities of the analysis. We focus for now on T=1000 and the comparison with/without FR data. In both bayesian and frequentist setting] 
+
+### Bayesian analysis
+
+### Frequentist analysis
+
+#### Maximum likelihood and Hessian computation 
+
+#### Likelihood profiles 
+
+### Bayesian analysis II - reparameterization of the model
+
+Model wFR is parameterized as often done in the literature (e.g. Weide et al.) but not exactly in terms of carrying capacities for the prey. Here we attempt a reparameterization to decrease the correlation between pairs of parameters belonging to the same function in the model. 
+
+
+## Discussion
+
+### Identifiability
+
+It seems that the model is globally identifiable when FR data is present. However, for the first parameterization, pairs of parameters belonging to the same functional forms of the models are highly correlated. These pairs are, respectively, (r K), (s, Q), and (C,D). Plots of the functions realized for each parameter pair 
+
+Reparameterizing so that K and Q are more closely related to carrying capacities improved substantially pairwise identifiability 
+
+The absence of FR data substantially compromises identifiability. This is all the more important that we consider here a fairly small noise on the functional response and relatively rich datasets. [more here based on what we find]
+
+### Maximum likelihood algorithms 
+
+[BFGS vs Nelder-Mead]
+
+[Try likelihood profiles for the case without FR data?]
+
+### Stochastic or deterministic FR in absence of FR data? 
+
+[try model with noise on the FR even without FR data?]
+
+### Future avenues for modelling development
+
+* Inserting demographic information together with functional response data. 
+* [do I mention more complex FR here or in a Supplement + before]
+* Predator-dependent or multiple-speces functional responses
+* Other kinds of interactions models. Perhaps cases with more interaction data and less time series (mutualisms?). 
