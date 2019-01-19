@@ -52,28 +52,30 @@ N_{t+1} & = & N_{t}\frac{e^{r+\epsilon_{1t}}}{1+\gamma N_{t}}\exp\left(-G(N_{t})
 
 
 \begin{eqnarray}
-P_{t+1} & = & P_{t}\frac{e^{s+\epsilon_{2t}}}{1+qP_{t}/N_{t}},\,\epsilon_{1t}\sim\mathcal{N}(0,\sigma_{1}^{2})\label{eq:predator_discreteLeslieMay}
+P_{t+1} & = & P_{t}\frac{e^{s+\epsilon_{2t}}}{1+qP_{t}/N_{t}},\,\epsilon_{1t}\sim\mathcal{N}(0,\sigma_{2}^{2})\label{eq:predator_discreteLeslieMay}
 \end{eqnarray}
 
 The roots of this model can be traced back to Leslie (1948), Leslie and Gower (1960). Parameter values were loosely inspired by rodents (e.g. Turchin & Hanski 1997, also using a Leslie-type numerical response). The division by $N_t$ in $exp(-G(N_t)P_t/N_t)$ expresses the fact that all terms within the exponential are on the prey fitness (per capita mortality) scale. This is similar to assuming a Nicholson-Bailey type predation term (Weide et al.).    
 
-Until now, we have not specified a model for the functional response $G(N_{t})$. With a deterministic functional response (FR), we have a classic stochastic predator-prey model with log-normal environmental noise but an otherwise `deterministic skeleton'. However, here we consider a data-generating process where the functional response is not deterministic but itself stochastic.  
+Until now, we have not specified a model for the functional response $G(N_{t})$. With a deterministic functional response (FR), we have a classic stochastic predator-prey model with log-normal environmental noise but an otherwise `deterministic skeleton'. A stability analysis of the deterministic model is performed in Appendix A1, later used to determine which parameters lead to quasi-cycles or a noisy limit cycles in the stochastic model.  
+
+However, here we consider a data-generating process where the functional response is not deterministic but itself stochastic, as in the following equation for a Holling type II functional response:    
 
 \begin{equation}\label{eq:FR}
-G_{t}|N_t\sim\mathcal{N}(\mu_{3t},\sigma_{3}^{2}),\;\mu_{3t}=\frac{CN_{t}}{D+N_{t}}
+G_{t}|N_t\sim\mathcal{N}\left(\frac{CN_{t}}{D+N_{t}},\sigma_{3}^2\right)
 \end{equation}
 
+This corresponds to a case where there is mild Gaussian fluctuations around the functional response. Because there can be substantial noise on the FR (see e.g. plots in [REFs there]), we also consider more complicated cases where the parameters $C$ and $D$ are themselves allowed to vary in time in Supplement S2 [I was thinking to only do this in a bayesian setting for the estimation part, since these models need more constraining]. 
 
-This corresponds to a case where there is mild Gaussian fluctuations around the functional response. Because there can be substantial noise on the FR (see e.g. plots in [REFs there]), we also consider cases where the parameters $C$ and $D$ are themselves allowed to vary in time in Appendix S2 [I was thinking to only do this in a bayesian setting for the estimation part]. 
 
 ## General statistical methodology
 
-Although we apply here data integration to a predator-prey case, the methodology is general and can in principle be applied to any auxiliary information (interaction rate, demographic rate) which is available over time and not simply produced by the count data. 
-
-Let us illustrate with the predator-prey case where log-densities for both predator and prey are gathered in a vector $\mathbf{x}_{t}=(\ln(N_{t}),\ln(P_{t}))^{T}$. Auxiliary information on the functional response, or rather the observed kill rate per predator is denoted $G_t$. To this can be added other demographic rates $R_{t} that are stacked in a vector as well, $\mathbf{a}_{t}=(G_{t}, R_{t})$. Currently
+Although we apply here data integration to a predator-prey case, the methodology is more general and can in principle be applied to any addiition of auxiliary information (interaction rate, demographic rate) which is available over time and not simply produced by the count data. The approach has similarities to Integrated Population Modelling (REFs) and data fusion approaches in ecosystem science (REFs). In a predator-prey context, we can cite the recent endeavour of Ferguson et al. to combine count and isotopic (diet) data, but their model differ in that it does not view interaction rate as the result of a stochastic process. 
+ 
+We illustrate the method with the predator-prey case where log-densities for both predator and prey are gathered in a log-count vector $\mathbf{x}_{t}=(\ln(N_{t}),\ln(P_{t}))^{T}$. Auxiliary information on the functional response, or rather the observed kill rate per predator is denoted $G_t$. To this can be added other demographic (vital) rates $R_{t}$ that are stacked in a vector as well, $\mathbf{a}_{t}=(G_{t}, R_{t})$. Currently
 we use $\mathbf{a}_{t}=G_{t}$ but it may useful to add more information in other applications; hence the derivation is kept general.
 
-We consider a discrete-time dynamical system (nonlinear difference equation). The population dynamics part of the model gives us the probability law of $\mathbf{x}_{t+1}|(\mathbf{x}_{t},\mathbf{a}_{t})$. We also know the law of $\mathbf{a}_{t}|\mathbf{x}_{t}$ (in our case, the functional response). We can therefore write down easily the joint likelihood for both data sources in quite general terms, denoting $\mathbf{X}=(\mathbf{x}_{1},...,\mathbf{x}_{t_{m}})$ and $\mathbf{A}=(\mathbf{a}_{1},...,\mathbf{a}_{t_{m}})$: 
+We consider a discrete-time dynamical system (nonlinear difference equation). The population dynamics part of the model gives us the probability law of $\mathbf{x}_{t+1}|(\mathbf{x}_{t},\mathbf{a}_{t})$, since the counts at time $t+1$ depend both on past abundances and the interaction or demographic data based on the chosen mechanistic model. We also know the probability law of $\mathbf{a}_{t}|\mathbf{x}_{t}$ (in our simple predator-prey case, the functional response). We can therefore write down easily the joint likelihood for both data sources in quite general terms, denoting $\mathbf{X}=(\mathbf{x}_{1},...,\mathbf{x}_{t_{m}})$ and $\mathbf{A}=(\mathbf{a}_{1},...,\mathbf{a}_{t_{m}})$: 
 
 \begin{equation}
 \mathcal{L}(\mathbf{X},\mathbf{A})=p(\mathbf{x}_{1},\mathbf{a}_{1})\prod_{t=1}^{t_{m}-1}p_{C}(\mathbf{x}_{t+1},\mathbf{a}_{t+1}|\mathbf{x}_{t},\mathbf{a}_{t})
@@ -96,7 +98,6 @@ end up with a model
 \begin{equation}
 \mathcal{L}(\mathbf{X},\mathbf{A})=p_{1}(\mathbf{a}_{1}|\mathbf{x}_{1})p(\mathbf{x}_{1})\prod_{t=1}^{t_{m}-1}\underbrace{p_{1}(\mathbf{x}_{t+1}|\mathbf{a}_{t},\mathbf{x}_{t})}_{\text{dynamical system}}\times\underbrace{p_{2}(\mathbf{a}_{t+1}|\mathbf{x}_{t+1})}_{\text{auxiliary information model}}
 \end{equation}
-
 
 where we swapped $p_{1}$ and $p_{2}$ to get the dynamical system model first. 
 
@@ -192,4 +193,5 @@ The absence of FR data substantially compromises identifiability. This is all th
 * Inserting demographic information together with functional response data. 
 * [do I mention more complex FR here or in a Supplement + before]
 * Predator-dependent or multiple-speces functional responses
+* Difficulties in measuring the functional response and taking into replacement [Juliano-type models etc.]
 * Other kinds of interactions models. Perhaps cases with more interaction data and less time series (mutualisms?). 
