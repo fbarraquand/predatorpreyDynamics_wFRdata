@@ -1,6 +1,7 @@
 ### FB 13/11/2017 - predator-prey model with noisy functional response data
 ### Writes down the likelihood of the model under the assumption of Gaussian noise on the FR
 ### 24/11/2017 Rosenzweig-MacArthur version -- should improve fitting but doesnt seem to 
+### FB 16/01/2019 -- edited so that functional response timing match math model (no delays)
 
 rm(list=ls())
 graphics.off()
@@ -38,9 +39,9 @@ FRnoise<-rnorm(n.years,0,sqrt(sigma2.proc))
 
 for (t in 1:(n.years-1)){
  
-  FR[t+1]<-max((C*N[t]/(D+N[t])) + FRnoise[t+1],0.0)
   N[t+1]<-N[t]*(exp(rV[t]-(N[t]/K)^beta -FR[t]*P[t]/N[t]) + 0.01) #+0.01 to maintain the prey pop positive
   P[t+1]<-P[t]*exp(rP[t] + epsilon*FR[t])
+  FR[t+1]<-max((C*N[t+1]/(D+N[t+1])) + FRnoise[t+1],0.0)
 }
 ## Plotting time series of abundances and FR
 par(mfrow=c(2,2))
@@ -48,6 +49,8 @@ plot(1:n.years,N,type="b")
 plot(1:n.years,P,type="b")
 #curve(dbeta(x,a,b),from=0, to=1)
 plot(N,FR)
+
+plot(log(N),log(P))
 
 ### Produce dataset to fit
 data = cbind(log(N),log(P),FR) 
@@ -71,13 +74,14 @@ n=nrow(y)
 ll = 0.0 ### Or p_1(a_1|x_1) p(x_1)
 for (t in 2:n){
 N_t = exp(y[t-1,1])
-P_t = exp(y[t-1,2]) 
+P_t = exp(y[t-1,2])
+N_tplus1 = exp(y[t,1])
 ############# Error corrected ########################################
 # mu1 = y[t-1,1] + theta[1] - theta[2]*N_t - y[t-1,3]*N_t/P_t # error
 mu1 = y[t-1,1] + theta[1] - theta[2]*N_t - y[t-1,3]*P_t/N_t # corrected
 ### The new DD should remove previous problems with log(1+theta[2]*N_t) 
 mu2 = y[t-1,2] + theta[4] + theta[5]*y[t-1,3]
-mu3 = (theta[7]*N_t)/(theta[8] + N_t)
+mu3 = (theta[7]*N_tplus1)/(theta[8] + N_tplus1)
 #ll= ll + log(dnorm(y[t,1], mu1, theta[3])) +  log(dnorm(y[t,2], mu2, theta[6])) + log(dnorm(y[t,3], mean = mu3, sd = theta[9]))
 # we have log(0) problem
 d1=dnorm(y[t,1], mu1, theta[3],log=T) ## directly asking for the log avoids problems
@@ -93,7 +97,7 @@ theta_start = c(runif(1,0.5,2),runif(1,0.001,5),runif(1,0.1,1),runif(1,0.1,0.5),
 # Put high values for D not C -- previously the reverse was done for bayesian est. (error?)
 # theta_start=rep(1,9) # you never know...
 
-p_opt<-optim(theta_start, logLik, y=data,method="BFGS",hessian=T)
+p_opt<-optim(theta_start, logLik, y=data,method="BFGS",hessian=T,control=list(maxit=1000))
 #warnings(): 44: In dnorm(y[t, 2], mu2, theta[6], log = T) : NaNs produced
 p_opt<-optim(theta_start, logLik, y=data,hessian=T)
 # does not work -- unclear why? Use L-BFGS? 
