@@ -20,8 +20,7 @@ bibliography: /home/frederic/Dropbox/database/total.bib
 
 ### Abstract
 
-Asking whether parameters can be identified from a given dataset is an important step in the model development process. Most predator-prey model fitting has attempted inverse modelling, identifying parameters solely from time series. Here, we aim at identifying the potential benefits of combining data when both growth and attack processes are viewed as stochastic. We fit a stochastic predator-prey model of the Leslie type to time series and functional response data simulated from the model. Our model has both environmental stochasticity in the growth rates and interaction stochasticity, i.e. a stochastic functional response.  We examine what the FR data brings to the quality of the estimates, and whether estimation is possible (for various time series length) solely with time series data. Both bayesian and frequentist estimation are performed, and in both cases we report diagnostics of identifiability of the various parameters. 
-[stuff on results here]. Our framework to combine data sets is general may be extended to other interaction scenario when both data on interaction rates and population counts are available. 
+Asking whether parameters can be identified from a given dataset is an important step in the model development process. Most predator-prey model fitting has attempted inverse modelling, identifying parameters solely from time series. Here, we aim at identifying the potential benefits of combining data when both growth and attack processes are viewed as stochastic. We fit a stochastic predator-prey model of the Leslie type to time series and functional response data simulated from the model. Our model has both environmental stochasticity in the growth rates and interaction stochasticity, i.e. a stochastic functional response.  We examine what the FR data brings to the quality of the estimates, and whether estimation is possible (for various time series length) solely with time series data. Both bayesian and frequentist estimation are performed, and in both cases we report diagnostics of identifiability of the various parameters. [stuff on results here]. Our framework to combine data sets is general may be extended to other interaction scenario when both data on interaction rates and population counts are available. 
 
 # Introduction
 
@@ -43,7 +42,7 @@ Asking whether parameters can be identified from a given dataset is an important
 
 ## Predator-prey model in discrete time
 
-We chose a model with a numerical response of the Leslie type (though similar analyses can be done for Lotka-Volterra or Rosenzweig MacArthur models can be done as well, see Supplement S1). A Beverton-Holt type density-dependence for the prey was chosen to avoid cycles in the prey in absence of the predator, so that the model behaviour is more reminiscent of its continuous-time counterpart (see Frank et al's article for more on connecting continous to discrete time models). Our model writes 
+We chose a model with a numerical response of the Leslie type (though similar analyses can be done for Rosenzweig MacArthur models can be done as well, see Supplement S1). A Beverton-Holt type density-dependence for the prey was chosen to avoid cycles in the prey in absence of the predator, so that the model behaviour is more reminiscent of its continuous-time counterpart (see Weide et al. for more on connecting continous to discrete time models). Our model writes
 
 
 \begin{eqnarray}
@@ -55,7 +54,7 @@ N_{t+1} & = & N_{t}\frac{e^{r+\epsilon_{1t}}}{1+\gamma N_{t}}\exp\left(-G(N_{t})
 P_{t+1} & = & P_{t}\frac{e^{s+\epsilon_{2t}}}{1+qP_{t}/N_{t}},\,\epsilon_{1t}\sim\mathcal{N}(0,\sigma_{2}^{2})\label{eq:predator_discreteLeslieMay}
 \end{eqnarray}
 
-The roots of this model can be traced back to Leslie (1948), Leslie and Gower (1960). Parameter values were loosely inspired by rodents (e.g. Turchin & Hanski 1997, also using a Leslie-type numerical response). The division by $N_t$ in $exp(-G(N_t)P_t/N_t)$ expresses the fact that all terms within the exponential are on the prey fitness (per capita mortality) scale. This is similar to assuming a Nicholson-Bailey type predation term (Weide et al.).    
+The roots of this discrete-time formulation can be traced back to Leslie (1948), Leslie and Gower (1960), who included a Beverton-Holt regulation for the prey and predator to make discrete-time models more similar to their continous-time counterparts. We consider additionally a saturating functional response $G(N_t)$ here, which makes our model resembles the continuous time models of Tanner (1975), May (1973) and later Turchin & Hanski (1997), whose notations we have kept. One of the advantages of this model over the Rosenzweig-MacArthur is that it can be parameterized using the observed intrinsic growth rates as Tanner (1975) did. Parameter values were inspired by small mammals (Turchin & Hanski 1997), which we modified slightly [these are not the same models anyway]. The division by $N_t$ in $\exp(-G(N_t)P_t/N_t)$ expresses the fact that all terms within the exponential are on the prey fitness scale (per capita mortality). This is similar to assuming a Nicholson-Bailey type predation term (e.g., Weide et al. 2018).   
 
 Until now, we have not specified a model for the functional response $G(N_{t})$. With a deterministic functional response (FR), we have a classic stochastic predator-prey model with log-normal environmental noise but an otherwise `deterministic skeleton'. A stability analysis of the deterministic model is performed in Appendix A1, later used to determine which parameters lead to quasi-cycles or a noisy limit cycles in the stochastic model.  
 
@@ -66,7 +65,6 @@ G_{t}|N_t\sim\mathcal{N}\left(\frac{CN_{t}}{D+N_{t}},\sigma_{3}^2\right)
 \end{equation}
 
 This corresponds to a case where there is mild Gaussian fluctuations around the functional response. Because there can be substantial noise on the FR (see e.g. plots in [REFs there]), we also consider more complicated cases where the parameters $C$ and $D$ are themselves allowed to vary in time in Supplement S2 [I was thinking to only do this in a bayesian setting for the estimation part, since these models need more constraining]. 
-
 
 ## General statistical methodology
 
@@ -145,9 +143,9 @@ For each parameter x data availability scenario, we fit the models in both bayes
 
 We fitted the model by MCMC in JAGS and also derived mathematically its likelihood, which we then optimised using the BFGS algorithm [see comments below on Nelder-Mead as well] with optim() in R. Several starting values were considered. 
 
-Identifiability was inspected in different ways. In a frequentist setting, we computed the Hessian matrix $H(\theta,Y)$ where $Y = (X,A)$ following eq. XX, at the estimated parameter set value $\hat{\theta}$. Non-zero eigenvalues of the Hessian - the observed Fisher Information Matrix (FIM) - typically translate into identifiable models (REFs). We also compute the expected FIM at the true parameter value. This value is relevant theoretically because $\theta \sim \mathcal{N}(\theta_{\text{true}},\mathcal{I(\theta_{\text{true}})}^{-1})$ where $\mathcal{I}(\theta_{\text{true}})$ is the FIM. In the case where the time series length $T \rightarrow \infty$, $H(\theta,Y^T) \rightarrow \mathcal{I(\theta_{\text{true}})}$ [should I try to prove this properly btw??]. 
+Identifiability was inspected in different ways. In a frequentist setting, we computed the Hessian matrix of the log-likelihood $H(\theta,Y)$ where $Y = (X,A)$ following eq. XX, at the estimated parameter set value $\hat{\theta}$. Formally, we compute $H(\theta,Y)$ as the Hessian of the -log-likelihood as this yields the observed Fisher Information Matrix. When the Hessian $H(\theta,Y)$ has non-zero eigenvalues (and is therefore invertible), the models are identifiable in the sense that no two parameter sets can give the same log-likelihood value in a neighborhood of the optimum (Rothenberg 1971). We also compute the expected FIM at the true parameter value. This value is relevant theoretically because asymptotically, $\theta \sim \mathcal{N}(\theta_{\text{true}},\mathcal{I(\theta_{\text{true}})}^{-1})$ where $\mathcal{I}(\theta_{\text{true}})$ is the FIM. In the case where the time series length $T \rightarrow \infty$, $H(\theta,y^T) \rightarrow \mathcal{I(\theta_{\text{true}})}$ [should I try to prove this properly btw? I think this should be doable by splitting the time series into small chunks, and then proving that the combined log-likelihood is obtained by summing LL for all chunks]. 
 
-We also computed the expected pairwise correlation between the parameters: the variance-covariance matrix of the parameters $\Sigma = H^{-1}$ so that we get easily the expected pairwise parameter correlation matrix $(\rho_{ij})$ with each element defined as $\frac{\Sigma_{ij}}{\sqrt{\Sigma_{ii}\Sigma_{jj}}}$.  
+We also computed the expected pairwise correlation between the parameters: the variance-covariance matrix of the parameters is defined by $\Sigma = H^{-1}$ so that we get easily the expected pairwise parameter correlation matrix $(\rho_{ij})$, with each element defined as $\frac{\Sigma_{ij}}{\sqrt{\Sigma_{ii}\Sigma_{jj}}}$.  
 
 In a bayesian setting, we inspected the correlations in the Markov chains for pairs of parameters, which translates into pair posterior distributions of parameters. Parameters whose chains were too positively or negatively correlated were considered not identifiable separately.  
 
@@ -161,7 +159,11 @@ In a bayesian setting, we inspected the correlations in the Markov chains for pa
 
 #### Maximum likelihood and Hessian computation 
 
+From this we can get (approximate) confidence intervals [which we will plot in a similar way to the Bayesian a posteriori estimates]. [do we use approximate Gaussian or smthg else? Some people use $\chi_2$ based on the distribution on the deviance scale.]
+
 #### Likelihood profiles 
+
+Do this for one and two parameters at a time. 
 
 ### Bayesian analysis II - reparameterization of the model
 
@@ -178,6 +180,8 @@ Reparameterizing so that K and Q are more closely related to carrying capacities
 
 The absence of FR data substantially compromises identifiability. This is all the more important that we consider here a fairly small noise on the functional response and relatively rich datasets. [more here based on what we find]
 
+[perhaps discussion of the work by Cole et al. -- exhaustive summaries are difficult to obtain here so we cannot do symbolic work. Discuss also the subset profiling of Eisenberg]
+
 ### Maximum likelihood algorithms 
 
 [BFGS vs Nelder-Mead]
@@ -192,6 +196,9 @@ The absence of FR data substantially compromises identifiability. This is all th
 
 * Inserting demographic information together with functional response data. 
 * [do I mention more complex FR here or in a Supplement + before]
-* Predator-dependent or multiple-speces functional responses
+* Different functional responses, e.g. Ivlev-type. 2 things may be interesting : 
+  * Simulating with Ivlev and fitting with Ivlev 
+  * Simulating with Holling and fitting with Ivlev, though beware that (i) we wont be able to match exactly the parameters because the shapes of different (ii) small differences in FR shape can induce large differences in model behaviour sensu Fussmann and Blasius 2005. 
+* Predator-dependent or multiple-speces functional responses -- later. All the more important that we predator-dependence can emerge from the discreteness of time. 
 * Difficulties in measuring the functional response and taking into replacement [Juliano-type models etc.]
 * Other kinds of interactions models. Perhaps cases with more interaction data and less time series (mutualisms?). 
