@@ -143,7 +143,7 @@ For each parameter x data availability scenario, we fit the models in both bayes
 
 We fitted the model by MCMC in JAGS and also derived mathematically its likelihood, which we then optimised using the BFGS algorithm [see comments below on Nelder-Mead as well] with optim() in R. Several starting values were considered. 
 
-Identifiability was inspected in different ways. In a frequentist setting, we computed the Hessian matrix of the log-likelihood $H(\theta,Y)$ where $Y = (X,A)$ following eq. XX, at the estimated parameter set value $\hat{\theta}$. Formally, we compute $H(\theta,Y)$ as the Hessian of the -log-likelihood as this yields the observed Fisher Information Matrix. When the Hessian $H(\theta,Y)$ has non-zero eigenvalues (and is therefore invertible), the models are identifiable in the sense that no two parameter sets can give the same log-likelihood value in a neighborhood of the optimum (Rothenberg 1971). We also compute the expected FIM at the true parameter value. This value is relevant theoretically because asymptotically, $\theta \sim \mathcal{N}(\theta_{\text{true}},\mathcal{I(\theta_{\text{true}})}^{-1})$ where $\mathcal{I}(\theta_{\text{true}})$ is the FIM. In the case where the time series length $T \rightarrow \infty$, $H(\theta,y^T) \rightarrow \mathcal{I(\theta_{\text{true}})}$ [should I try to prove this properly btw? I think this should be doable by splitting the time series into small chunks, and then proving that the combined log-likelihood is obtained by summing LL for all chunks]. 
+Identifiability was inspected in different ways. In a frequentist setting, we computed the Hessian matrix of the negative log-likelihood $H(\theta,Y)$ where $Y = (X,A)$ following eq. XX, at the estimated parameter set value $\hat{\theta}$. Formally, $H(\theta,Y)$ is the observed Fisher Information Matrix (FIM). When the Hessian $H(\theta,Y)$ has non-zero eigenvalues (and is therefore invertible), the models are identifiable in the sense that no two parameter sets can give the same log-likelihood value in a neighborhood of the optimum (Rothenberg 1971). We also compute the expected FIM at the true parameter value. This value is relevant theoretically because asymptotically, as the time series length $T$ gets large, $\theta \sim \mathcal{N}(\theta_{\text{true}},\mathcal{I}_T(\theta_{\text{true}})^{-1})$ where $\mathcal{I}_T(\theta_{\text{true}})$ is the FIM for a time series of length $T$, obtained by taking expectations over many time series of length $T$. In the case where the time series length $T \rightarrow \infty$, we have most likely a convergence of $H(\theta,y^T) \rightarrow \mathcal{I}_T(\theta_{\text{true}})$ [should I try to prove this properly btw? I think this should be doable by splitting the long time series into smaller chunks, and then proving that the combined log-likelihood is obtained by summing LL for all chunks. Perhaps we can use - among other things - that for a partition $(T_1,..., T_n)$ of the time series of total length $T$ into chunks of size $T/n$, we have $\mathcal{I}_T(\theta_{\text{true}}) = n  \mathcal{I}_{T/n}(\theta_{\text{true}})$]. 
 
 We also computed the expected pairwise correlation between the parameters: the variance-covariance matrix of the parameters is defined by $\Sigma = H^{-1}$ so that we get easily the expected pairwise parameter correlation matrix $(\rho_{ij})$, with each element defined as $\frac{\Sigma_{ij}}{\sqrt{\Sigma_{ii}\Sigma_{jj}}}$.  
 
@@ -161,9 +161,15 @@ In a bayesian setting, we inspected the correlations in the Markov chains for pa
 
 From this we can get (approximate) confidence intervals [which we will plot in a similar way to the Bayesian a posteriori estimates]. [do we use approximate Gaussian or smthg else? Some people use $\chi_2$ based on the distribution on the deviance scale.]
 
-#### Likelihood profiles 
+#### Likelihood surfaces 
 
-Do this for one and two parameters at a time. 
+
+Plot these for one and two parameters at a time. 
+
+
+(I have previously called them likelihood profiles but may have be wrong about this since "profiles" refer to ridgelines, cf. Bolker EMDB chap. 6 p. 186. A likelihood profile is computed by fixing one parameter, say r, then optimizing -LL for all other parameters, and finally plotting the optimized -LL against r. If it's flat, then this parameter is not identifiable. There's some debate in identifiability papers [cf. Eisenberg and co.] about how useful are these profiles.) 
+
+As does Bolker p. 190 Fig. 6.8, we can fit both the likelihood "slice" and the likelihood profile on the same plot. [Btw, he does that for the attack rate of a functional response!]
 
 ### Bayesian analysis II - reparameterization of the model
 
@@ -174,11 +180,13 @@ Model wFR is parameterized as often done in the literature (e.g. Weide et al.) b
 
 ### Identifiability
 
-It seems that the model is globally identifiable when FR data is present. However, for the first parameterization, pairs of parameters belonging to the same functional forms of the models are highly correlated. These pairs are, respectively, (r K), (s, Q), and (C,D). Plots of the functions realized for each parameter pair 
+It seems that the model is globally identifiable when FR data is present. However, for the first parameterization, pairs of parameters belonging to the same functional forms of the models are highly correlated. These pairs are, respectively, (r K), (s, Q), and (C,D). Plots of the functions realized for each parameter pair show that such correlations are substantial for T=1000. 
 
-Reparameterizing so that K and Q are more closely related to carrying capacities improved substantially pairwise identifiability 
+Reparameterizing so that K and Q are more closely related to carrying capacities improved substantially decreased parameter correlations [I would not go as far as to say it improved identifiability, since the models seemed to be already identifiable in the first place]. Whilst Bolker (EMDB book, p. ) suggested that a Michaelis-Menten formulation ($CN/(D+N)$) of the FR may improve identifiability compared to the classical $(a,h)$ formulation (which was our guess as well), we did not find this here: correlation seems slightly lower of the $(a,h)$ pair. 
 
-The absence of FR data substantially compromises identifiability. This is all the more important that we consider here a fairly small noise on the functional response and relatively rich datasets. [more here based on what we find]
+[Another issue that we may want to convey here: Bolker mentions in his book p. 200 that "all other things being equal, smaller confidence regions (i.e, for larger and less noisy datasets and for higher alpha levels) are more elliptical". Meaning that the less noise there is and the longer the time series, the more correlations we get between the parameters. Could that be true here? Check T=100 and less.] 
+
+The absence of FR data substantially compromises identifiability. This is all the more important that we consider here a fairly small noise on the functional response and relatively rich datasets. [more here based on what we find -- do profile likelihoods for these?]
 
 [perhaps discussion of the work by Cole et al. -- exhaustive summaries are difficult to obtain here so we cannot do symbolic work. Discuss also the subset profiling of Eisenberg]
 
@@ -186,11 +194,11 @@ The absence of FR data substantially compromises identifiability. This is all th
 
 [BFGS vs Nelder-Mead]
 
-[Try likelihood profiles for the case without FR data?]
+[Try likelihood surfaces and profiles for the case without FR data??]
 
 ### Stochastic or deterministic FR in absence of FR data? 
 
-[try model with noise on the FR even without FR data?]
+[try model with noise on the FR even without FR data? I think I tried this once and it did not work very well, but on the other hand we had some bugs in the code]
 
 ### Future avenues for modelling development
 
@@ -200,5 +208,5 @@ The absence of FR data substantially compromises identifiability. This is all th
   * Simulating with Ivlev and fitting with Ivlev 
   * Simulating with Holling and fitting with Ivlev, though beware that (i) we wont be able to match exactly the parameters because the shapes of different (ii) small differences in FR shape can induce large differences in model behaviour sensu Fussmann and Blasius 2005. 
 * Predator-dependent or multiple-speces functional responses -- later. All the more important that we predator-dependence can emerge from the discreteness of time. 
-* Difficulties in measuring the functional response and taking into replacement [Juliano-type models etc.]
+* Difficulties in measuring the functional response and taking into replacement [Juliano-type models etc.]. Discuss perhaps the chapter 6 of EMDB book by Bolker, he does this on count data - does he take into account depletion in the original article? If not, why not? 
 * Other kinds of interactions models. Perhaps cases with more interaction data and less time series (mutualisms?). 
