@@ -218,7 +218,8 @@ theta_true
 
 ######### Estimation starting away from MLE ########
 theta_init = theta_true + rnorm(9,0,sd=0.05)
-p_opt<-optim(theta_init, logLik, y=data,method="BFGS",hessian=T,control=list(fnscale=-1))
+#p_opt<-optim(theta_init, logLik, y=data,method="BFGS",hessian=T,control=list(fnscale=-1)) ## we consider -LL, no need
+p_opt<-optim(theta_init, logLik, y=data,method="BFGS",hessian=T)
 p_opt$par
 theta_true
 ### Ask optim for the Hessian
