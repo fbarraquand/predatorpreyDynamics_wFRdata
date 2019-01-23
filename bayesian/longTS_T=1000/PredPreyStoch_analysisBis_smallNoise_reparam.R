@@ -28,9 +28,8 @@ rm(list=ls())
 graphics.off()
 
 library("R2jags")      # Load R2jags package
-#library("modeest") #not needed
 
-### Parameters for simulation of Hassell model
+### Parameters for simulation 
 
 n.years<-1000  	# Number of years - 25 first, perhaps use 50 or 100 / worked very well with almost no process error on the real scale
 N1<-1			# Initial pop size
@@ -275,6 +274,12 @@ out2 <- jags(jags.data, inits, parameters, "predpreymod_without_sepFR.txt", n.ch
 print(out2, dig = 2)
 # http://jeromyanglim.tumblr.com/post/37362047458/how-to-get-dic-in-jags
 print(out,dig=2) # to compare deviance, DIC - check also parameter values.
+
+save.image('/media/frederic/DATA/Simuls_wOlivier/predatorpreyFRdata/simlongTS_reparam.RData')
+file_path = "/media/frederic/DATA/Simuls_wOlivier/predatorpreyFRdata/"
+save(out,file = paste(file_path,'out_simlongTS_reparam.RData',sep=""))
+save(out2,file = paste(file_path,'out2_simlongTS_reparam.RData',sep=""))
+
 # 01/06/2017 // Olivier says DIC is crap in this (and other?) context, avoid this...  
 plot(as.mcmc(out2)) 
 plot(as.mcmc(out)) 

@@ -27,9 +27,8 @@ rm(list=ls())
 graphics.off()
 
 library("R2jags")      # Load R2jags package
-#library("modeest") #not needed
 
-### Parameters for simulation of Hassell model
+### Parameters for simulation 
 
 n.years<-1000  	# Number of years - 25 first, perhaps use 50 or 100 / worked very well with almost no process error on the real scale
 N1<-1			# Initial pop size
@@ -73,13 +72,13 @@ plot(1:n.years,N,type="b")
 plot(1:n.years,P,type="b")
 #curve(dbeta(x,a,b),from=0, to=1)
 plot(N,FR)
-
+plot(log(N),log(P))
     
 #seq(0,1,0.01)
 # Bundle data
 jags.data <- list(T=n.years,logN=log(N),logP=log(P),FR=FR)
 
-sink("ssm.predprey4.txt")
+sink("predprey.txt")
 cat("
     model {
     
@@ -136,8 +135,8 @@ inits <- function () {
   list(sigma_V=runif(1,0.1,2), sigma_P=runif(1,0.1,2), r_V=runif(1,0.1,2),r_P=runif(1,0.1,2), K_V=runif(1,0.2,8), Q=runif(1,0,5),tau_FR=runif(1,1,10),C=runif(1,10,100),D=runif(1,0.01,0.1))}
 
 # Parameters monitored
-parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D","logNupdate","logPupdate","FR")
-#parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","tau_FR","C","D")
+#parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D","logNupdate","logPupdate","FR")
+parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","tau_FR","C","D")
 
 
 # MCMC settings
@@ -148,7 +147,7 @@ ni<-34000
 nt <- 10 # “thinning”
 
 # run model
-out <- jags(jags.data, inits, parameters, "ssm.predprey4.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
+out <- jags(jags.data, inits, parameters, "predprey.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
 print(out, dig = 2)
 
 # Good title for a future paper (if I compute more quantities of Trophic Strength from this...) would be
@@ -166,14 +165,15 @@ plot(out.mcmc)
 CEb<-out$BUGSoutput$mean$C
 DEb<-out$BUGSoutput$mean$D
 
-logN1<-out$BUGSoutput$mean$logNupdate
-logP1<-out$BUGSoutput$mean$logPupdate
-
-par(mfrow=c(2,2))
-plot(1:(n.years-1),logN1,type="o")
-plot(1:(n.years-1),logP1,type="o")
+# logN1<-out$BUGSoutput$mean$logNupdate
+# logP1<-out$BUGSoutput$mean$logPupdate
+# 
+# par(mfrow=c(2,2))
+# plot(1:(n.years-1),logN1,type="o")
+# plot(1:(n.years-1),logP1,type="o")
 
 ### Fit functional response
+par(mfrow=c(1,1))
 
 fr_fit<-nls(FR~CE*N/(DE+N),start=list(CE=1,DE=1))
 CE<-coef(fr_fit)[1]
@@ -183,7 +183,7 @@ lines(N,CE*N/(DE+N))
 lines(N,CEb*N/(DEb+N),col="blue")
 
 ### Now try to fit a model without the FR data. 
-sink("ssm.predprey_without_sepFR.txt")
+sink("predprey_without_sepFR.txt")
 cat("
     model {
     
@@ -250,13 +250,14 @@ ni<-34000
 nt <- 10 # “thinning”
 
 # run model
-out2 <- jags(jags.data, inits, parameters, "ssm.predprey_without_sepFR.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
+out2 <- jags(jags.data, inits, parameters, "predprey_without_sepFR.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
 print(out2, dig = 2)
-# http://jeromyanglim.tumblr.com/post/37362047458/how-to-get-dic-in-jags
-print(out,dig=2) # to compare deviance, DIC - check also parameter values.
+print(out,dig=2) # 
 # 01/06/2017 // Olivier says DIC is crap in this (and other?) context, avoid this...  
-plot(as.mcmc(out2)) 
-plot(as.mcmc(out)) 
+#plot(as.mcmc(out2)) 
+#plot(as.mcmc(out)) 
+
+save.image('/media/frederic/DATA/Simuls_wOlivier/predatorpreyFRdata/simlongTS.RData')
 
 ### plot densities
 library(mcmcplots)
