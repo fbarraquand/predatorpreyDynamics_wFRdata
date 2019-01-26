@@ -1,5 +1,7 @@
 ### F. Barraquand 21/04/2015 - Code for analyzing noisy predator-prey system (incl. noise on the functional response) 
 ### Predator prey-only, but no fit of functional response (28/04/2015)
+### Correction predator density multiplication 26/12/2018
+### Corrected error with *K_V instead of /K_V 26/12/2018
 
 # Looks like the FR parameters are the most difficult to estimate indirectly, which is interesting for a 
 # joint model fit. 
@@ -10,7 +12,6 @@ rm(list=ls())
 graphics.off()
 
 library("R2jags")      # Load R2jags package
-#library("modeest")
 
 ### Parameters for simulation of Hassell model
 
@@ -23,12 +24,12 @@ rmax_V<-2			# Max AVERAGE growth rate (thus not a true max...)
 rmax_P<-0.5
 sigma2.proc<-0.05		# Process sigma on the log-scale
 
-C<-2.5
+C<-0.5
 D<-1
 Q<-10
 
 ### Simulation of data
-set.seed(42) 
+set.seed(41) 
 y<-N<-P<-numeric(n.years)
 N[1]<-N1
 P[1]<-P1
@@ -82,12 +83,11 @@ cat("
     
     
     logN[t+1] ~ dnorm(logNupdate[t],tau_V)
-    logNupdate[t] <- logN[t] + r_V -log(1+N[t]/K_V) -C*P[t]/(D+N[t])
+    logNupdate[t] <- logN[t] + r_V -log(1+N[t]/K_V) -C*exp(logP[t])/(D+N[t])
     N[t]<-exp(logN[t])
-    P[t]<-exp(logP[t])
     # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working
     logP[t+1]~ dnorm(logPupdate[t],tau_P)
-    logPupdate[t] <- logP[t] + r_P - log(1+P[t]*Q/N[t])  
+    logPupdate[t] <- logP[t] + r_P - log(1+exp(logP[t])*Q/exp(logN[t]) )  
     
     }
     
@@ -98,7 +98,7 @@ sink()
 
 # Initial values
 inits <- function () {
-  list(sigma_V=runif(1,0.1,2), sigma_P=runif(1,0.1,2), r_V=runif(1,0.1,2),r_P=runif(1,0.1,2), K_V=runif(1,0.2,10), Q=runif(1,0,5),C=runif(1,10,100),D=runif(1,0.01,0.1))}
+  list(sigma_V=runif(1,0.01,1), sigma_P=runif(1,0.01,1), r_V=runif(1,0.1,3),r_P=runif(1,0.1,1), K_V=runif(1,0.2,10), Q=runif(1,5,15),C=runif(1,1,10),D=runif(1,0.5,10))}
 
 
 # Parameters monitored
@@ -106,35 +106,30 @@ parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D","logN","logP")
 
 # MCMC settings
 nc <- 3 #number of chains
-nb <- 14000 # “burn in”
+nb <- 10000 # “burn in”
 #ni <- 14000# “number of iterations” # that's for a symmetric distrib...
-ni<-34000
+ni<-20000 #34000
 nt <- 10 # “thinning”
 
 # run model
 out <- jags(jags.data, inits, parameters, "ssm.predprey1.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
 print(out, dig = 2)
 
-### Old results 
+### Diagnostics
+library(mcmcplots)
+### Trace plots
+traplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D"))
+### plot densities
+denplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D"))
 
+
+# Old esults for sigma.proc = 1
 # Inference for Bugs model at "ssm.predprey1.txt", fit using jags,
-# 3 chains, each with 34000 iterations (first 14000 discarded), n.thin = 10
-# n.sims = 6000 iterations saved
-# mu.vect sd.vect   2.5%    25%    50%    75%  97.5% Rhat n.eff
-# C            2.18    4.11   0.00   0.00   0.14   2.34  15.08 1.47     9
-# D            1.24    1.95   0.00   0.00   0.00   2.27   6.47 1.19    15
-# K_V          0.99    1.71   0.20   0.21   0.25   0.72   6.75 2.01     5
-# Q           10.17    2.29   6.22   8.57   9.94  11.57  15.15 1.00  6000
+# 3 chains, each with 20000 iterations (first 10000 discarded), n.thin = 10
+# n.sims = 3000 iterations saved
+# #           mu.vect sd.vect   2.5%    25%    50%    75%  97.5% Rhat n.eff
+# C            0.00    0.01   0.00   0.00   0.00   0.00   0.02 4.07     3
+# D            0.00    0.03   0.00   0.00   0.00   0.00   0.00 1.27    11
+# K_V          2.18    1.30   0.50   1.28   1.89   2.77   5.62 1.01   390
+# Q            9.97    3.48   4.40   7.51   9.53  11.89  17.63 1.00  3000
 
-### New results
-
-# Inference for Bugs model at "ssm.predprey1.txt", fit using jags,
-# 3 chains, each with 34000 iterations (first 14000 discarded), n.thin = 10
-# n.sims = 6000 iterations saved
-# mu.vect sd.vect   2.5%    25%    50%    75%  97.5% Rhat n.eff
-# C            0.00    0.01   0.00   0.00   0.00   0.00   0.01 1.31    10
-# D            0.01    0.08   0.00   0.00   0.00   0.00   0.05 1.56     8
-# K_V          1.50    0.70   0.52   0.99   1.39   1.88   3.19 1.01   190
-# Q           12.27    2.81   7.53  10.33  12.00  14.01  18.38 1.00  4500
-
-### Estimation problems here 

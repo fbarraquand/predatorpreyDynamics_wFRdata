@@ -12,7 +12,6 @@ rm(list=ls())
 graphics.off()
 
 library("R2jags")      # Load R2jags package
-library("modeest")
 
 ### Parameters for simulation of Hassell model
 
@@ -116,6 +115,13 @@ nt <- 10 # “thinning”
 # run model
 out <- jags(jags.data, inits, parameters, "ssm.predprey1.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
 print(out, dig = 2)
+
+### Diagnostics
+library(mcmcplots)
+### Trace plots
+traplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","logC","logD"))
+### plot densities
+denplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","logC","logD"))
 
 # Inference for Bugs model at "ssm.predprey1.txt", fit using jags,
 # 3 chains, each with 20000 iterations (first 10000 discarded), n.thin = 10

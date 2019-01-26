@@ -1,7 +1,5 @@
 ### F. Barraquand 21/04/2015 - Code for analyzing noisy predator-prey system (incl. noise on the functional response) 
 ### Predator prey-only, but no fit of functional response (28/04/2015)
-### Correction predator density multiplication 26/12/2018
-### Corrected error with *K_V instead of /K_V 26/12/2018
 
 # Looks like the FR parameters are the most difficult to estimate indirectly, which is interesting for a 
 # joint model fit. 
@@ -12,25 +10,25 @@ rm(list=ls())
 graphics.off()
 
 library("R2jags")      # Load R2jags package
-library("modeest")
+
 
 ### Parameters for simulation of Hassell model
 
-n.years<-100  	# Number of years - 25 first, perhaps use 50 or 100 / worked very well with almost no process error on the real scale
+n.years<-1000  	# Number of years
 N1<-1			# Initial pop size
 P1<-0.1
 K<-1			# threshold dd 
 beta<-1			# density-dependence exponent
 rmax_V<-2			# Max AVERAGE growth rate (thus not a true max...)
 rmax_P<-0.5
-sigma2.proc<-1		# Process sigma on the log-scale
+sigma2.proc<-0.05		# Process sigma on the log-scale
 
-C<-0.5
-D<-1
+C<-15
+D<-0.25
 Q<-10
 
 ### Simulation of data
-set.seed(42) 
+set.seed(41) 
 y<-N<-P<-numeric(n.years)
 N[1]<-N1
 P[1]<-P1
@@ -44,7 +42,7 @@ for (t in 1:(n.years-1)){
 }
 ## Plotting time series
 plot(1:n.years,N,type="b")
-lines(1:n.years,P,type="b")
+lines(1:n.years,P,type="b",col="blue")
 
 # Bundle data
 jags.data <- list(T=n.years,logN=log(N),logP=log(P))
@@ -84,11 +82,12 @@ cat("
     
     
     logN[t+1] ~ dnorm(logNupdate[t],tau_V)
-    logNupdate[t] <- logN[t] + r_V -log(1+N[t]/K_V) -C*exp(logP[t])/(D+N[t])
+    logNupdate[t] <- logN[t] + r_V -log(1+N[t]/K_V) -C*P[t]/(D+N[t])
     N[t]<-exp(logN[t])
+    P[t]<-exp(logP[t])
     # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working
     logP[t+1]~ dnorm(logPupdate[t],tau_P)
-    logPupdate[t] <- logP[t] + r_P - log(1+exp(logP[t])*Q/exp(logN[t]) )  
+    logPupdate[t] <- logP[t] + r_P - log(1+P[t]*Q/N[t])  
     
     }
     
@@ -96,32 +95,43 @@ cat("
     ",fill=TRUE)
 sink()
 
+# 
+# # Initial values
+# inits <- function () {
+#   list(sigma_V=runif(1,0.1,2), sigma_P=runif(1,0.1,2), r_V=runif(1,0.1,2),r_P=runif(1,0.1,2), K_V=runif(1,0.2,10), Q=runif(1,0,5),C=runif(1,10,100),D=runif(1,0.01,0.1))}
+
 
 # Initial values
 inits <- function () {
-  list(sigma_V=runif(1,0.1,2), sigma_P=runif(1,0.1,2), r_V=runif(1,0.1,2),r_P=runif(1,0.1,2), K_V=runif(1,0.2,10), Q=runif(1,0,5),C=runif(1,10,100),D=runif(1,0.01,0.1))}
+  list(sigma_V=runif(1,0.01,1), sigma_P=runif(1,0.01,1), r_V=runif(1,0.1,3),r_P=runif(1,0.1,1), K_V=runif(1,0.2,10), Q=runif(1,5,15),C=runif(1,1,10),D=runif(1,0.5,10))}
 
 
 # Parameters monitored
-parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D","logN","logP")
+parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D")
 
 # MCMC settings
 nc <- 3 #number of chains
-nb <- 10000 # “burn in”
+nb <- 14000 # “burn in”
 #ni <- 14000# “number of iterations” # that's for a symmetric distrib...
-ni<-20000 #34000
+ni<-34000
 nt <- 10 # “thinning”
 
 # run model
 out <- jags(jags.data, inits, parameters, "ssm.predprey1.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
 print(out, dig = 2)
-# 
-# Inference for Bugs model at "ssm.predprey1.txt", fit using jags,
-# 3 chains, each with 20000 iterations (first 10000 discarded), n.thin = 10
-# n.sims = 3000 iterations saved
-# #           mu.vect sd.vect   2.5%    25%    50%    75%  97.5% Rhat n.eff
-# C            0.00    0.01   0.00   0.00   0.00   0.00   0.02 4.07     3
-# D            0.00    0.03   0.00   0.00   0.00   0.00   0.00 1.27    11
-# K_V          2.18    1.30   0.50   1.28   1.89   2.77   5.62 1.01   390
-# Q            9.97    3.48   4.40   7.51   9.53  11.89  17.63 1.00  3000
 
+# check some dynamical aspects of the data first
+par(mfrow=c(2,2))
+plot(N)
+plot(P)
+plot(log(N),log(P))
+plot(N,C*N/(D+N))
+
+### Diagnostics
+library(mcmcplots)
+### Trace plots
+png(file = "TracePlot_T=1000_noisyLC.png")
+traplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D"))
+dev.off()
+### plot densities
+denplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D"))
