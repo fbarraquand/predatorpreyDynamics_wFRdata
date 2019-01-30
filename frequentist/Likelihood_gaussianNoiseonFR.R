@@ -3,6 +3,7 @@
 ### Designed to be the simplest form noise tested first
 ### FB 09/01/2019 - better likelihood profiles for pairs of potentially correlated params
 ### FB 17/01/2019 -- edited so that functional response timing match math model (no delays)
+### FB 30/01/2019 -- added simulations without attack rate data 
 
 rm(list=ls())
 graphics.off()
@@ -575,6 +576,193 @@ custom_levels = quantile(rssbis,probs=c(0.025,0.05,0.1,0.5),na.rm=T)
 contour(theta_true[1]+r_new,theta_true[2]+g_new,rssbis,levels=custom_levels,xlab="r",ylab="1/K")
 
 
+################################# Without the FR data ############################
+par(mfrow=c(2,2))
+
+### Looking only at (C,D) since this is the part difficult to identify. 
+theta_true  = c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C,D)
+
+DeltaC = 2.5 # C is +/- 2
+DeltaD = 1.0 #D is +/-0.9
+niter = 50
+C_new=D_new=rep(0,niter)
+llbis=matrix(0,nrow=niter,ncol=niter)
+for (i in 1:niter){
+  for (j in 1:niter){
+    C_new[i] =2*DeltaC*i/niter-DeltaC
+    D_new[j] = 2*DeltaD*j/niter-DeltaD
+    theta_new=theta_true+c(0,0,0,0,0,0,C_new[i],D_new[j] ,0)
+    llbis[i,j]=logLik_FRwoutNoise(theta_new,data)
+  }
+}
+contour(theta_true[7]+C_new,theta_true[8]+D_new,llbis,nlevels=20,xlab="C",ylab="D")
+custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
+contour(theta_true[7]+C_new,theta_true[8]+D_new,llbis,levels=custom_levels,xlab="C",ylab="D")
+
+
+persp3d(theta_true[7]+C_new,theta_true[8],llbis, col="skyblue")
+
+### Let's make that zoom much more precise - around the true values
+DeltaC = 0.25 # C is +/- 2
+DeltaD = 0.5 #D is +/-0.9
+niter = 50
+C_new=D_new=rep(0,niter)
+llbis=matrix(0,nrow=niter,ncol=niter)
+for (i in 1:niter){
+  for (j in 1:niter){
+    C_new[i] =2*DeltaC*i/niter-DeltaC
+    D_new[j] = 2*DeltaD*j/niter-DeltaD
+    theta_new=theta_true+c(0,0,0,0,0,0,C_new[i],D_new[j] ,0)
+    llbis[i,j]=logLik_FRwoutNoise(theta_new,data)
+  }
+}
+
+contour(theta_true[7]+C_new,theta_true[8]+D_new,llbis,nlevels=20,xlab="C",ylab="D")
+custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
+contour(theta_true[7]+C_new,theta_true[8]+D_new,llbis,levels=custom_levels,xlab="C",ylab="D")
+
+### Perhaps I should compare this ridge to the one with the FR data. 
+### Would allow to see if it is (likely) flatter
+
+### Perhaps we should take a larger view
+### 4-figure panel for comparison
+
+theta_center = c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C+2,D+2)
+
+DeltaC = 4.5 # C is 4.5 +/- 4.5
+DeltaD = 3.0 # D is 3 +/- 3
+
+niter = 50
+C_new=D_new=rep(0,niter)
+llbis=matrix(0,nrow=niter,ncol=niter)
+for (i in 1:niter){
+  for (j in 1:niter){
+    C_new[i] =2*DeltaC*i/niter-DeltaC
+    D_new[j] = 2*DeltaD*j/niter-DeltaD
+    theta_new=theta_center+c(0,0,0,0,0,0,C_new[i],D_new[j] ,0)
+    llbis[i,j]=logLik_FRwoutNoise(theta_new,data)
+  }
+}
+
+custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
+contour(theta_center[7]+C_new,theta_center[8]+D_new,llbis,levels=custom_levels,xlab="C",ylab="D",main="Without FR data")
+abline(v=2.5,col="red")
+abline(h=1,col="red")
+
+### Let's make that zoom much more precise - around the putative MLE
+theta_true= c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C+0.55,D+1,sqrt(0.05))## not really true
+DeltaC = 0.25 # C is +/- 2
+DeltaD = 0.5 #D is +/-0.9
+niter = 50
+C_new=D_new=rep(0,niter)
+llbis=matrix(0,nrow=niter,ncol=niter)
+for (i in 1:niter){
+  for (j in 1:niter){
+    C_new[i] =2*DeltaC*i/niter-DeltaC
+    D_new[j] = 2*DeltaD*j/niter-DeltaD
+    theta_new=theta_true+c(0,0,0,0,0,0,C_new[i],D_new[j] ,0)
+    llbis[i,j]=logLik_FRwoutNoise(theta_new,data)
+  }
+}
+
+custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
+contour(theta_true[7]+C_new,theta_true[8]+D_new,llbis,levels=custom_levels,xlab="C",ylab="D",main="Zoom without FR data")
+abline(v=2.5,col="red")
+abline(h=1,col="red")
+
+### Let's compare just below with what the LL with FR data looks like. 
+
+theta_center = c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C+2,D+2,sqrt(0.05))
+
+DeltaC = 4.5 # C is 4.5 +/- 4.5
+DeltaD = 3.0 # D is 3 +/- 3
+
+niter = 50
+C_new=D_new=rep(0,niter)
+llbis=matrix(0,nrow=niter,ncol=niter)
+for (i in 1:niter){
+  for (j in 1:niter){
+    C_new[i] =2*DeltaC*i/niter-DeltaC
+    D_new[j] = 2*DeltaD*j/niter-DeltaD
+    theta_new=theta_center+c(0,0,0,0,0,0,C_new[i],D_new[j] ,0)
+    llbis[i,j]=logLik(theta_new,data)
+  }
+}
+custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
+contour(theta_center[7]+C_new,theta_center[8]+D_new,llbis,levels=custom_levels,xlab="C",ylab="D",main="With FR data")
+abline(v=2.5,col="red")
+abline(h=1,col="red")
+
+### Let's make that zoom much more precise - around the true values
+theta_true= c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C,D,sqrt(0.05))## not really true
+
+DeltaC = 0.25 # C is +/- 2
+DeltaD = 0.5 #D is +/-0.9
+niter = 50
+C_new=D_new=rep(0,niter)
+llbis=matrix(0,nrow=niter,ncol=niter)
+for (i in 1:niter){
+  for (j in 1:niter){
+    C_new[i] =2*DeltaC*i/niter-DeltaC
+    D_new[j] = 2*DeltaD*j/niter-DeltaD
+    theta_new=theta_true+c(0,0,0,0,0,0,C_new[i],D_new[j] ,0)
+    llbis[i,j]=logLik(theta_new,data)
+  }
+}
+
+custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
+contour(theta_true[7]+C_new,theta_true[8]+D_new,llbis,levels=custom_levels,xlab="C",ylab="D",main="Zoom with FR data")
+abline(v=2.5,col="red")
+abline(h=1,col="red")
+
+### Much steeper but difficult to see in that representation. 
+### Maybe I can show these as two surfaces of different colors, in 3D? 
+### Perhaps I need the likelihood profiles after all. 
+
+#### Zooming out - you never know
+par(mfrow=c(1,2))
+theta_center = c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C+22,D+22)
+
+DeltaC = 24.5 # 
+DeltaD = 23.0 # 
+
+niter = 100
+C_new=D_new=rep(0,niter)
+llbis=matrix(0,nrow=niter,ncol=niter)
+for (i in 1:niter){
+  for (j in 1:niter){
+    C_new[i] =2*DeltaC*i/niter-DeltaC
+    D_new[j] = 2*DeltaD*j/niter-DeltaD
+    theta_new=theta_center+c(0,0,0,0,0,0,C_new[i],D_new[j] ,0)
+    llbis[i,j]=logLik_FRwoutNoise(theta_new,data)
+  }
+}
+
+custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
+contour(theta_center[7]+C_new,theta_center[8]+D_new,llbis,levels=custom_levels,xlab="C",ylab="D",main="Without FR data")
+abline(v=2.5,col="red")
+abline(h=1,col="red")
+
+theta_center = c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C+22,D+22,sqrt(0.05))
+
+niter = 100
+C_new=D_new=rep(0,niter)
+llbis=matrix(0,nrow=niter,ncol=niter)
+for (i in 1:niter){
+  for (j in 1:niter){
+    C_new[i] =2*DeltaC*i/niter-DeltaC
+    D_new[j] = 2*DeltaD*j/niter-DeltaD
+    theta_new=theta_center+c(0,0,0,0,0,0,C_new[i],D_new[j] ,0)
+    llbis[i,j]=logLik(theta_new,data)
+  }
+}
+
+custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
+contour(theta_center[7]+C_new,theta_center[8]+D_new,llbis,levels=custom_levels,xlab="C",ylab="D",main="With FR data")
+abline(v=2.5,col="red")
+abline(h=1,col="red")
+
+### Not very easy to view differences from contours. 
 
 #################### Old comments  ##################
 ### Does suggest a ridge there -- a little like in the Polanski paper, no? 
