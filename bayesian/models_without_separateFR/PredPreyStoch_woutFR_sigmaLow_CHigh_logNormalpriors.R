@@ -2,6 +2,7 @@
 ### Predator prey-only, but no fit of functional response (28/04/2015)
 ### Correction predator density multiplication -- 26/12/2018
 ### New priors for C and D -- 26/12/2018
+### Lognormal priors with dlnorm -- 31/01/2019
 
 # Looks like the FR parameters are the most difficult to estimate indirectly, which is interesting for a 
 # joint model fit. 
@@ -73,10 +74,9 @@ cat("
     tau_P<-pow(sigma_P,-2)
     
     #Priors predation parameters 
-    logC ~ dnorm(0,0.5) #C~dgamma(.01,.01)
-    logD ~ dnorm(0,0.5) #D~gamma(.01,.01)
-    C<-exp(logC)
-    D<-exp(logD)
+    C ~ dlnorm(0,0.5) #C~dgamma(.01,.01)
+    D ~ dlnorm(0,0.5) #D~gamma(.01,.01)
+
 
     # Likelihood
     # state process
@@ -104,7 +104,7 @@ inits <- function () {
 #C=runif(1,10,100),D=runif(1,0.01,0.1)
 
 # Parameters monitored
-parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","logC","logD") #"logN","logP"
+parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D") #"logN","logP"
 
 # MCMC settings
 nc <- 3 #number of chains
@@ -120,50 +120,21 @@ print(out, dig = 2)
 ### Diagnostics
 library(mcmcplots)
 ### Trace plots
-traplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","logC","logD"))
+traplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D"))
 ### plot densities
-denplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","logC","logD"))
+denplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D"))
 
 # Inference for Bugs model at "ssm.predprey1.txt", fit using jags,
 # 3 chains, each with 20000 iterations (first 10000 discarded), n.thin = 10
 # n.sims = 3000 iterations saved
 # mu.vect sd.vect   2.5%    25%    50%    75%  97.5% Rhat n.eff
-# K_V          1.37    0.68   0.33   0.89   1.26   1.74   2.99 1.06    55
-# Q           12.37    2.89   7.63  10.29  12.09  14.07  19.00 1.01   530
-# logC        -0.21    0.81  -2.04  -0.72  -0.11   0.40   1.12 1.00   690
-# logD         0.04    0.97  -1.91  -0.60   0.04   0.70   1.93 1.00   710
-# r_P          0.56    0.10   0.38   0.49   0.55   0.62   0.77 1.01   600
-# r_V          1.80    0.46   1.10   1.48   1.75   2.03   2.95 1.05    56
-# sigma2_P     0.04    0.01   0.03   0.04   0.04   0.04   0.05 1.00  3000
-# sigma2_V     0.06    0.01   0.04   0.05   0.06   0.06   0.08 1.00  2700
-# deviance   -29.59    3.79 -34.79 -32.35 -30.36 -27.60 -20.38 1.00   620
-out$BUGSoutput$sims.list$logC
-out$BUGSoutput$sims.list$logD
+# C           1.07    1.07   0.06   0.34   0.74   1.47   3.84 1.00  1100
+# D           2.50    4.01   0.07   0.44   1.08   2.76  13.93 1.00  1200
+# K_V         1.39    0.65   0.27   0.95   1.34   1.76   2.83 1.12    41
+# Q          12.24    2.78   7.43  10.32  11.98  13.97  18.45 1.01   420
+# r_P         0.55    0.09   0.38   0.49   0.55   0.62   0.75 1.01   380
+# r_V         1.78    0.48   1.12   1.47   1.69   1.98   3.14 1.08    51
+# sigma2_P    0.04    0.01   0.03   0.04   0.04   0.04   0.05 1.00  2400
+# sigma2_V    0.06    0.01   0.04   0.05   0.06   0.06   0.08 1.00   810
+# deviance  -29.55    3.64 -34.63 -32.27 -30.16 -27.54 -20.89 1.00   780
 
-# comparing mean values of C and D
-C
-D
-exp(out$BUGSoutput$mean$logC) ## Not the same thing - but is this because I output the median?
-exp(out$BUGSoutput$mean$logD)
-
-
-### --- WITH dnorm(1,0.1) priors ---
-# Inference for Bugs model at "ssm.predprey1.txt", fit using jags,
-# 3 chains, each with 20000 iterations (first 10000 discarded), n.thin = 10
-# n.sims = 3000 iterations saved
-# mu.vect sd.vect   2.5%    25%    50%    75%  97.5% Rhat n.eff
-# K_V          1.49    0.65   0.52   1.01   1.43   1.87   3.00 1.02   210
-# Q           12.47    2.89   7.57  10.37  12.28  14.23  18.73 1.00  2500
-# logC        -1.45    2.35  -6.71  -2.85  -1.11   0.20   2.50 1.00  3000
-# logD         0.45    3.15  -6.00  -1.62   0.50   2.56   6.65 1.00  3000
-# > C
-# [1] 2.5
-# > D
-# [1] 1
-# > exp(out$BUGSoutput$mean$logC) ## Not the same thing
-# [1] 0.2341679
-# > exp(out$BUGSoutput$mean$logD)
-# [1] 1.57264
-
-### --- with dnorm(1,0.5)
-### C estimated to 0.65 + 0.81^2/2 =0.97805 <2.5 => NO
