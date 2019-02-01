@@ -266,6 +266,49 @@ denplot(out2,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D"))
 traplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D"))
 traplot(out2,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D"))
 
+## Prior-posterior overlap
+library(MCMCvis) ## complicated 
+par(mfrow=c(2,1),lwd=2)
+C1 = out$BUGSoutput$sims.array[,1,'C']
+C2 = out$BUGSoutput$sims.array[,2,'C']
+C3 = out$BUGSoutput$sims.array[,3,'C']
+curve(dgamma(x, shape = 0.01, rate = 0.01, log = FALSE),from=0.000001,to=5,ylim=c(0,3),ylab="Probability density",xlab = "C",main = "With FR data")
+lines(density(C1,from=0.000001,to=5),col="green")
+lines(density(C2,from=0.000001,to=5),col="blue")
+lines(density(C3,from=0.000001,to=5),col="pink")
+legend("topright",legend = c("prior","chain 1","chain 2","chain 3"),col=c("black","green","blue","pink"), lty = 1)
+
+C1 = out2$BUGSoutput$sims.array[,1,'C']
+C2 = out2$BUGSoutput$sims.array[,2,'C']
+C3 = out2$BUGSoutput$sims.array[,3,'C']
+curve(dgamma(x, shape = 0.01, rate = 0.01, log = FALSE),from=0.000001,to=5,ylim=c(0,3),ylab="Probability density",xlab = "C",main = "Without FR data")
+lines(density(C1,bw=0.01,from=0.000001,to=5),col="green")
+lines(density(C2,bw=0.01,from=0.000001,to=5),col="blue")
+lines(density(C3,bw=0.01,from=0.000001,to=5),col="pink")
+legend("topright",legend = c("prior","chain 1","chain 2","chain 3"),col=c("black","green","blue","pink"), lty = 1)
+#PriorPosteriorOverlap_vagueGammaPriors.pdf
+
+### Zoom 
+par(mfrow=c(2,1),lwd=2)
+C1 = out$BUGSoutput$sims.array[,1,'C']
+C2 = out$BUGSoutput$sims.array[,2,'C']
+C3 = out$BUGSoutput$sims.array[,3,'C']
+curve(dgamma(x, shape = 0.01, rate = 0.01, log = FALSE),from=0.000001,to=5,ylim=c(0,1),ylab="Probability density",xlab = "C",main = "With FR data")
+lines(density(C1,from=0.000001,to=5),col="green")
+lines(density(C2,from=0.000001,to=5),col="blue")
+lines(density(C3,from=0.000001,to=5),col="pink")
+legend("topright",legend = c("prior","chain 1","chain 2","chain 3"),col=c("black","green","blue","pink"), lty = 1)
+
+C1 = out2$BUGSoutput$sims.array[,1,'C']
+C2 = out2$BUGSoutput$sims.array[,2,'C']
+C3 = out2$BUGSoutput$sims.array[,3,'C']
+curve(dgamma(x, shape = 0.01, rate = 0.01, log = FALSE),from=0.000001,to=5,ylim=c(0,1),ylab="Probability density",xlab = "C",main = "Without FR data")
+lines(density(C1,bw=0.01,from=0.000001,to=5),col="green")
+lines(density(C2,bw=0.01,from=0.000001,to=5),col="blue")
+lines(density(C3,bw=0.01,from=0.000001,to=5),col="pink")
+legend("topright",legend = c("prior","chain 1","chain 2","chain 3"),col=c("black","green","blue","pink"), lty = 1)
+
+
 ### Plot pair posterior densities
 postsamples=cbind(out$BUGSoutput$sims.list$r_V,
 out$BUGSoutput$sims.list$K_V,
