@@ -79,18 +79,25 @@ q = 9
 eps = 10^(-9)
 eigen(FIM1)$values>q*lambda1*eps
 # [1] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE
+eigen(FIM1)$values
+# [1] 3935.3588217 3897.2837594 3881.6778990 3367.7063613 1982.7696500 1618.3102018    7.7358066
+# [8]    4.2169881    0.1838534
 
 lambda1 = max(eigen(FIM2)$values)
 q = 8
 eps = 10^(-9)
 eigen(FIM2)$values>q*lambda1*eps
 #[1] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE
+eigen(FIM2)$values
+# [1] 3.958224e+03 3.897284e+03 3.375020e+03 1.982770e+03 4.355443e+00 9.727962e-01 1.838534e-01
+# [8] 4.096381e-02
 
 # plot both sets of eigenvalues
 eigentable = cbind(eigen(FIM1)$values,c(eigen(FIM2)$values,NA))
 dotchart(eigentable,gcolor=c("blue","red"),pch=19)
 
+pdf("FIMeigenvalues_perturbedfixedpoint_T100.pdf",width=10,height=5)
 eigentable = cbind(log10(eigen(FIM1)$values),c(log10(eigen(FIM2)$values),NA))
-dotchart(eigentable,gcolor=c("blue","red"),pch=19,xlab="log10(eigenvalue)",ylab="Rank eigenvalue")
-
+dotchart(eigentable,gcolor=c("blue","red"),pch=19,xlab="log10(eigenvalue)",ylab="Rank eigenvalue",xlim=c(-2,4))
+dev.off()
 # Not very different -- I should do the same for the T=1000 computation
