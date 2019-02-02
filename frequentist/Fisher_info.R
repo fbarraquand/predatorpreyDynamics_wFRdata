@@ -37,7 +37,9 @@ for (krep in 1:100){
 
   data = read.csv(paste(file_path,"predatorPrey_withGaussianFR",krep,".csv",sep=""))
   data[1]<-NULL
-  print(krep) #or use message(paste0("some text:", somevar))
+  print(krep) 
+  
+  if (sum(sapply(data,is.finite))<300){message(paste0("Pb with rep:",krep))}
   
   LL = function(theta){
   return(logLik(theta,data))
