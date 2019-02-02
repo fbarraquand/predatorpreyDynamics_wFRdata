@@ -72,9 +72,8 @@ cat("
     
     #Priors predation parameters 
     # C~dgamma(.1,.1) # the lower the vaguer // E(C) = a/b, V(C) = a/b^2
-    C~dgamma(10,1)
-    D~dgamma(10,1)
-    # check model Leslie to see how she specified priors...
+    C~dgamma(2,1)
+    D~dgamma(2,1)
 
     # Likelihood
     # state process
@@ -103,7 +102,7 @@ inits <- function () {
 
 
 # Parameters monitored
-parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D","logN","logP")
+parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D") #,"logN","logP"
 
 # MCMC settings
 nc <- 3 #number of chains
@@ -115,6 +114,12 @@ nt <- 10 # “thinning”
 # run model
 out <- jags(jags.data, inits, parameters, "ssm.predprey1.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
 print(out, dig = 2)
+
+### plot densities
+library(mcmcplots)
+denplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D"))
+### Trace plots
+traplot(out,c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","C","D"))
 
 ### Old results 
 
@@ -191,3 +196,19 @@ print(out, dig = 2)
 # K_V          1.45    0.62   0.52   1.01   1.35   1.80   2.92 1.07    34
 # Q           12.28    2.75   7.55  10.35  12.05  14.03  18.23 1.00  3200
 ### Not fully satisfying either
+
+### With dgamma(2,1)
+# Inference for Bugs model at "ssm.predprey1.txt", fit using jags,
+# 3 chains, each with 34000 iterations (first 14000 discarded), n.thin = 10
+# n.sims = 6000 iterations saved
+# mu.vect sd.vect   2.5%    25%    50%    75%  97.5% Rhat n.eff
+# C           1.61    0.95   0.26   0.90   1.46   2.15   3.89 1.00  6000
+# D           2.07    1.40   0.27   1.03   1.78   2.76   5.51 1.00  6000
+# K_V         1.23    0.58   0.33   0.82   1.15   1.55   2.66 1.02   170
+# Q          12.40    2.88   7.51  10.42  12.17  14.18  18.60 1.00  3200
+# r_P         0.56    0.10   0.37   0.49   0.55   0.62   0.75 1.00  3200
+# r_V         1.89    0.43   1.20   1.58   1.83   2.13   2.96 1.01   160
+# sigma2_P    0.04    0.01   0.03   0.04   0.04   0.04   0.05 1.00  6000
+# sigma2_V    0.06    0.01   0.04   0.05   0.06   0.06   0.07 1.00  6000
+# deviance  -29.98    3.50 -34.84 -32.53 -30.61 -28.16 -21.49 1.00  2900
+# 

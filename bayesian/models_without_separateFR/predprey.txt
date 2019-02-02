@@ -21,20 +21,24 @@
     tau_P<-pow(sigma_P,-2)
     
     #Priors predation parameters 
-    C ~ dlnorm(0,0.5) #C~dgamma(.01,.01)
-    D ~ dlnorm(0,0.5) #D~gamma(.01,.01)
-
+    tau_FR ~ dgamma(.01,.01)
+    C~dgamma(1,1) # uninformative priors OK for that one
+    D~dgamma(2,1)
+    # check model Leslie to see how she specified priors...
 
     # Likelihood
     # state process
 
-    for (t in 1:(T-1)){    
-    
-    logN[t+1] ~ dnorm(logNupdate[t],tau_V)
-    logNupdate[t] <- logN[t] + r_V -log(1+N[t]/K_V) -C*exp(logP[t])/(D+N[t])
-    N[t]<-exp(logN[t])
+    for (t in 1:(T-1)){        
 
+    FRUpdate[t] <- C*N[t]/(D+N[t]) #functional response equation, including noise
+    FR[t] ~  dnorm(FRUpdate[t],tau_FR) #small trick to use FR data
+
+    logNupdate[t] <- logN[t] + r_V -log(1+N[t]/K_V) -FR[t]*exp(logP[t])/N[t]
+    logN[t+1] ~ dnorm(logNupdate[t],tau_V)
+    N[t]<-exp(logN[t])
     # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working
+
     logP[t+1]~ dnorm(logPupdate[t],tau_P)
     logPupdate[t] <- logP[t] + r_P - log(1+exp(logP[t])*Q/exp(logN[t]) )  
     
