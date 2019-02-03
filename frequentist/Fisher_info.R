@@ -126,8 +126,10 @@ write.csv(rFIM2,file="FIM2.csv")
 
 ### One says that a matrix is ill-conditioned 
 ### when the condition number is larger than the precision of the matrix entries
-# Is this the same thing? Check again SVD. 
+# Is this the same thing? Should be. Check again SVD btw. 
 max(eigen(FIM1)$values)/min(eigen(FIM1)$values)
+min(eigen(FIM1)$values)/max(eigen(FIM1)$values) # yep - to the errors. 
+min(eigen(FIM2)$values)/max(eigen(FIM2)$values) # yep - to the errors. 
 
 ### Could I use a Hilbert matrix as a gold standard of ill-conditioning? 
 hilbert = function(k){
