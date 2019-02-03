@@ -101,3 +101,80 @@ eigentable = cbind(log10(eigen(FIM1)$values),c(log10(eigen(FIM2)$values),NA))
 dotchart(eigentable,gcolor=c("blue","red"),pch=19,xlab="log10(eigenvalue)",ylab="Rank eigenvalue",xlim=c(-2,4))
 dev.off()
 # Not very different -- I should do the same for the T=1000 computation
+
+det(FIM1)
+#[1] 3.858458e+21
+det(FIM2)
+#[1] 3.294103e+12
+
+rFIM1 = round(FIM1,digits=6)
+rFIM2 = round(FIM2,digits=6)
+write.csv(rFIM1,file="FIM1.csv")
+write.csv(rFIM2,file="FIM2.csv")
+
+# Condition number
+1 / (norm(FIM1) * norm(solve(FIM1)))
+# [1] 4.440851e-05
+1 / (norm(FIM2) * norm(solve(FIM2)))
+# [1] 7.847715e-06
+
+1 / (norm(rFIM1) * norm(solve(rFIM1)))
+# [1] 4.440851e-05
+1 / (norm(rFIM2) * norm(solve(rFIM2)))
+# [1] 7.847715e-06
+### Good, robust to rounding
+
+### One says that a matrix is ill-conditioned 
+### when the condition number is larger than the precision of the matrix entries
+# Is this the same thing? Check again SVD. 
+max(eigen(FIM1)$values)/min(eigen(FIM1)$values)
+
+### Could I use a Hilbert matrix as a gold standard of ill-conditioning? 
+hilbert = function(k){
+  B = matrix(0,k,k)
+  for (i in 1:k){
+    for (j in 1:k){
+      B[i,j] = 1 / (i+j-1)
+    }
+  }
+  return(B)
+}
+
+A = hilbert(9)
+lambda1 = max(eigen(A)$values)
+q = 9
+eps = 10^(-9)
+eigen(A)$values>q*lambda1*eps
+#  Criteria works for these.
+det(A)
+#[1] 9.720265e-43
+#but beware
+# det(1000*A)
+# [1] 9.720274e-16
+1 / (norm(A * norm(solve(A))))
+# [1] 9.093794e-13
+1 / (norm(1000* A * norm(solve(1000*A))))
+# [1] 9.093802e-13
+
+### Construct correlation matrices
+library(corrplot)
+
+Sigma = solve(FIM1)
+Rho = cov2cor(Sigma) #correlation matrix
+par(mfrow=c(1,1))
+rownames(Rho) = c("r_V","1/K_V","sigma1","r_P","Q","sigma2","C","D","sigma3")
+colnames(Rho) = c("r_V","1/K_V","sigma1","r_P","Q","sigma2","C","D","sigma3")
+corrplot(Rho, method="circle")
+pdf("InverseFIM1_corrplot.pdf",width=6,height=6)
+corrplot(Rho, method = "number")
+dev.off()
+
+Sigma = solve(FIM2)
+Rho = cov2cor(Sigma) #correlation matrix
+par(mfrow=c(1,1))
+rownames(Rho) = c("r_V","1/K_V","sigma1","r_P","Q","sigma2","C","D")
+colnames(Rho) = c("r_V","1/K_V","sigma1","r_P","Q","sigma2","C","D")
+corrplot(Rho, method="circle")
+pdf("InverseFIM2_corrplot.pdf",width=6,height=6)
+corrplot(Rho, method = "number")
+dev.off()
