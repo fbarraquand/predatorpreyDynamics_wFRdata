@@ -91,11 +91,10 @@ lambda1 = max(eigen(FIM2)$values)
 q = 8
 eps = 10^(-9)
 eigen(FIM2)$values>q*lambda1*eps
-#[1]  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE FALSE FALSE
+#[1] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE
 eigen(FIM2)$values
-# [1] 519114.108521  53410.636304   3897.249496    186.721320    121.754348      1.260060     -5.675628
-# [8]   -401.850571
-### What do these negative eigenvalues mean here? Saddlepoint? 
+# [1] 3.955476e+03 3.897249e+03 2.064697e+02 1.217543e+02 5.898893e+00 2.982713e+00 1.260060e+00
+# [8] 1.725521e-02
 
 # plot both sets of eigenvalues
 eigentable = cbind(eigen(FIM1)$values,c(eigen(FIM2)$values,NA))
@@ -110,7 +109,7 @@ dev.off()
 det(FIM1)
 #[1]  1.289197e+20
 det(FIM2)
-#[1] 7.059874e+21
+#[1] 148248790570
 
 rFIM1 = round(FIM1,digits=6)
 rFIM2 = round(FIM2,digits=6)
@@ -121,13 +120,7 @@ write.csv(rFIM2,file="FIM2_reparam.csv")
 1 / (norm(FIM1) * norm(solve(FIM1)))
 # [1] 3.097357e-05
 1 / (norm(FIM2) * norm(solve(FIM2)))
-# [1] 1.997018e-06
-
-1 / (norm(rFIM1) * norm(solve(rFIM1)))
-# [1] 4.440851e-05
-1 / (norm(rFIM2) * norm(solve(rFIM2)))
-# [1] 7.847715e-06
-### Good, robust to rounding
+# [1] 3.936197e-06
 
 ### One says that a matrix is ill-conditioned 
 ### when the condition number is larger than the precision of the matrix entries

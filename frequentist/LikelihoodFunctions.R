@@ -181,7 +181,7 @@ logLik_FRwoutNoise_reparam=function(theta,y){
     ######## Error that was previously there!! N_t/P_t instead P_t/N_t ###
     ### mu1 = y[t-1,1] + theta[1] - log(1+theta[2]*N_t) - y[t-1,3]*N_t/P_t
     ######################################################################
-    mu1 = y[t-1,1] + theta[1] - logprot(1+(exp(theta[1])-1)*N_t/theta[2]) - (theta[7]*N_t)/(1 + theta[7]*theta[8]*N_t)
+    mu1 = y[t-1,1] + theta[1] - logprot(1+(exp(theta[1])-1)*N_t/theta[2]) - (theta[7]*P_t)/(1 + theta[7]*theta[8]*N_t)
     mu2 = y[t-1,2] + theta[4] - logprot((1+theta[5]*(exp(theta[4])-1)*P_t/N_t))
     #ll= ll + log(dnorm(y[t,1], mu1, theta[3])) +  log(dnorm(y[t,2], mu2, theta[6])) + log(dnorm(y[t,3], mean = mu3, sd = theta[9]))
     # we have log(0) problem

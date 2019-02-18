@@ -91,40 +91,36 @@ lambda1 = max(eigen(FIM2)$values)
 q = 8
 eps = 10^(-9)
 eigen(FIM2)$values>q*lambda1*eps
-#[1]  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE FALSE FALSE
+#[1]  TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE
 eigen(FIM2)$values
-# [1]  1.791707e+08  9.022571e+06  3.841592e+03  2.955808e+03  7.602579e+02  2.538383e+02  1.188629e+00
-# [8] -1.409984e+01
-### What do these negative eigenvalues mean here? Saddlepoint? 
-### Unclear if this could be something numerical. 
-### Perhaps I also need to take a look at Hessians separately, not only the expected value -> seems similar. 
+# [1] 2.966232e+05 4.620387e+04 3.841592e+03 7.602579e+02 1.763334e+02 1.360253e+01 1.188629e+00
+# [8] 6.845582e-02
 
 # plot both sets of eigenvalues
 eigentable = cbind(eigen(FIM1)$values,c(eigen(FIM2)$values,NA))
 dotchart(eigentable,gcolor=c("blue","red"),pch=19)
 
-pdf("FIMeigenvalues_perturbedfixedpoint_T100_reparam.pdf",width=10,height=5)
+pdf("FIMeigenvalues_noisyLC_T100_reparam.pdf",width=10,height=5)
 eigentable = cbind(log10(eigen(FIM1)$values),c(log10(eigen(FIM2)$values),NA))
 dotchart(eigentable,gcolor=c("blue","red"),pch=19,xlab="log10(eigenvalue)",ylab="Rank eigenvalue",xlim=c(-2,4))
 dev.off()
 # Not very different -- I should do the same for the T=1000 computation
 
 det(FIM1)
-#[1]  1.289197e+20
+#[1]  1.525779e+25
 det(FIM2)
-#[1] 7.059874e+21
+#[1] 7.812083e+18
 
 rFIM1 = round(FIM1,digits=6)
 rFIM2 = round(FIM2,digits=6)
-write.csv(rFIM1,file="FIM1_reparam.csv")
-write.csv(rFIM2,file="FIM2_reparam.csv")
+write.csv(rFIM1,file="FIM1_noisyLC_reparam.csv")
+write.csv(rFIM2,file="FIM2_noisy_LC_reparam.csv")
 
 # Condition number
 1 / (norm(FIM1) * norm(solve(FIM1)))
 # [1] 1.580722e-08
 1 / (norm(FIM2) * norm(solve(FIM2)))
-# [1] 1.997018e-06
-
+# [1]  2.173759e-07
 
 ### One says that a matrix is ill-conditioned 
 ### when the condition number is larger than the precision of the matrix entries
@@ -169,7 +165,7 @@ par(mfrow=c(1,1))
 rownames(Rho) = c("r_V","K","sigma1","r_P","Q","sigma2","a","h","sigma3")
 colnames(Rho) = c("r_V","K","sigma1","r_P","Q","sigma2","a","h","sigma3")
 corrplot(Rho, method="circle")
-pdf("InverseFIM1_corrplot_reparam.pdf",width=6,height=6)
+pdf("InverseFIM1_noisyLC_corrplot_reparam.pdf",width=6,height=6)
 corrplot(Rho, method = "number")
 dev.off()
 
@@ -179,6 +175,6 @@ par(mfrow=c(1,1))
 rownames(Rho) = c("r_V","K","sigma1","r_P","Q","sigma2","a","h")
 colnames(Rho) = c("r_V","K","sigma1","r_P","Q","sigma2","a","h")
 corrplot(Rho, method="circle")
-pdf("InverseFIM2_corrplot_reparam.pdf",width=6,height=6)
+pdf("InverseFIM2_noisyLC_corrplot_reparam.pdf",width=6,height=6)
 corrplot(Rho, method = "number")
 dev.off()
