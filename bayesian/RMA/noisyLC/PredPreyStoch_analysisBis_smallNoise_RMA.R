@@ -26,31 +26,62 @@ rm(list=ls())
 graphics.off()
 
 library("R2jags")      # Load R2jags package
-#library("modeest") #not needed
 
-### Parameters for simulation of Hassell model
-
+# Parameters
 n.years<-100  	# Number of years - 25 first, perhaps use 50 or 100 / worked very well with almost no process error on the real scale
 N1<-1			# Initial pop size
 P1<-0.1
 K<-1			# threshold dd 
 beta<-1			# density-dependence exponent
-rmax_V<-2			# Max AVERAGE growth rate (thus not a true max...)
-rmax_P<-(-0.20) #
-sigma2.proc<-0.05		# worked well with 0.005
+rmax_V<-1.8			# Max AVERAGE growth rate (thus not a true max...)
+rmax_P<-(-0.7) # 0.5 works with rmaxV=2
+sigma2.proc<-0		# worked well with 0.005
 # Process sigma on the log-scale, use the Peretti et al. value. 0.005
 
-
 ### FR and predator parameters
-C<-2.5
-D<-1
-#Q<-10
+C<-10
+D<-0.6 ### with 0.8 we might have noise-sustained oscillations
 epsilon<-0.1
+
+
+### Without noise 
+sigma2.proc<-0		# worked well with 0.005
+# Process sigma on the log-scale, use the Peretti et al. value. 0.005
 
 ### Simulation of data
 #set.seed(42) 
 #set.seed(41)
 set.seed(40)
+
+y<-N<-P<-FR<-numeric(n.years)
+N[1]<-N1
+P[1]<-P1
+FR[1]<-C*N[1]/(D+N[1])
+
+rV<-rnorm(n.years-1,rmax_V,sqrt(sigma2.proc))
+rP<-rnorm(n.years-1,rmax_P,sqrt(sigma2.proc))
+FRnoise<-rnorm(n.years-1,0,sqrt(sigma2.proc))
+
+for (t in 1:(n.years-1)){
+  N[t+1]<-N[t]*(exp(rV[t])/(1+(N[t]/K)^beta))*exp(-FR[t]*P[t]/N[t])
+  P[t+1]<-P[t]*exp(rP[t]+epsilon*FR[t])
+  FR[t+1]<-(C*N[t+1]/(D+N[t+1])) + FRnoise[t+1]
+}
+##### Other question: should I use an interval a little less than one to stabilize this?
+
+## Plotting time series of abundances and FR
+par(mfrow=c(2,2))
+plot(1:n.years,N,type="b")
+plot(1:n.years,P,type="b")
+#curve(dbeta(x,a,b),from=0, to=1)
+plot(N,FR)
+
+### Simulation of data
+set.seed(42) 
+
+### With noise 
+
+sigma2.proc<-0.05
 
 y<-N<-P<-FR<-numeric(n.years)
 N[1]<-N1
@@ -280,6 +311,7 @@ lines(1:(n.years-1),logP2,type="o",col="blue")
 library(mcmcplots)
 denplot(out,c("r_V","K_V","r_P","epsilon","sigma2_V","sigma2_P","C","D"))
 denplot(out2,c("r_V","K_V","r_P","epsilon","sigma2_V","sigma2_P","C","D"))
+### check that out https://stackoverflow.com/questions/10925944/how-to-add-vertical-line-to-posterior-density-plots-using-plot-mcmc
 
 ### Trace plots
 traplot(out,c("r_V","K_V","r_P","epsilon","sigma2_V","sigma2_P","C","D"))
