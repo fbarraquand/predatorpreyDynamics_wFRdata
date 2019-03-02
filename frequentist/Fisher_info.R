@@ -158,7 +158,31 @@ det(A)
 1 / (norm(1000* A * norm(solve(1000*A))))
 # [1] 9.093802e-13
 
+hilbert9 = 500*A
+block_hilbert = 500*A*(rFIM1!=0)
+block_hilbert
+
+eigentable = cbind(log10(eigen(FIM1)$values),c(log10(eigen(FIM2)$values),NA),log10(eigen(hilbert9)$values),log10(eigen(block_hilbert)$values))
+dotchart(eigentable,gcolor=c("blue","red","green","brown"),pch=19,xlab="log10(eigenvalue)",ylab="Rank eigenvalue",xlim=c(-11,7))
+
+
+pdf("FIMeigenvalues_perturbedfixedpoint_T100_comparisonHilbert.pdf",width=10,height=10)
+### Comparison to symmetric random and random block matrices
+random_mat = matrix(rnorm(81,0,1),9,9)
+random_sym = random_mat %*% t(random_mat)
+block_random=random_sym*(rFIM1!=0)
+eigentable = cbind(log10(eigen(FIM1)$values),c(log10(eigen(FIM2)$values),NA),log10(eigen(hilbert9)$values),log10(eigen(block_hilbert)$values),log10(eigen(random_sym)$values),log10(eigen(block_random)$values))
+dotchart(eigentable,gcolor=c("blue","red","green","brown","pink","violet"),pch=19,cex=0.9,plot.cex=1.3,cex.lab=1.3,xlab="log10(eigenvalue)",ylab="Rank eigenvalue",xlim=c(-11,7))
+par(cex=1.2)
+text(-7,10*6,"Model with attack rate data")
+text(-7,10*5,"Model without attack rate data")
+text(-7,9*4+2,"Hilbert matrix")
+text(-7,9*3,"Block-structured Hilbert matrix")
+text(-7,8*2,"Gaussian iid matrix")
+text(-7,6*1,"Block-structured Gaussian iid matrix")
+dev.off()
 ### Construct correlation matrices
+
 library(corrplot)
 
 Sigma = solve(FIM1)
