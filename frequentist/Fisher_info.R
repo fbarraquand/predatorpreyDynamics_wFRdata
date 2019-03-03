@@ -178,11 +178,12 @@ text(-7,10*6,"Model with attack rate data")
 text(-7,10*5,"Model without attack rate data")
 text(-7,9*4+2,"Hilbert matrix")
 text(-7,9*3,"Block-structured Hilbert matrix")
-text(-7,8*2,"Gaussian iid matrix")
-text(-7,6*1,"Block-structured Gaussian iid matrix")
+text(-7,8*2,"Wishart iid matrix")
+text(-7,6*1,"Block-structured Wishart matrix")
 dev.off()
-### Construct correlation matrices
+# https://en.wikipedia.org/wiki/Random_matrix
 
+### Construct correlation matrices
 library(corrplot)
 
 Sigma = solve(FIM1)
