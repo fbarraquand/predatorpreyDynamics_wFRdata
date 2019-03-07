@@ -13,7 +13,7 @@ file_path2 = "../simulations/small_noise_on_FR/parameter_sets/noisy_cycles/T=100
 krep=1 # sample chosen
 data1 = read.csv(paste(file_path1,"predatorPrey_withGaussianFR",krep,".csv",sep=""))
 names(data1)=c("Time","n","p","KR")
-head(data)
+head(data1)
 
 # switch to noisy LC dataset
 data2 = read.csv(paste(file_path2,"predatorPrey_withGaussianFR",krep,".csv",sep=""))
