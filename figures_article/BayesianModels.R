@@ -101,7 +101,7 @@ cat("
 sink()
 
 # Parameters monitored
-parameters<-c("r_V","gamma","r_P","Q","sigma2_V","sigma2_P","C","D","tauFR") 
+parameters<-c("r_V","gamma","r_P","Q","sigma2_V","sigma2_P","C","D") 
 
 
 # Initial values
