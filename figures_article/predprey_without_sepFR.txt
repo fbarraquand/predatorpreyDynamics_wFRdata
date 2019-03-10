@@ -30,7 +30,7 @@
     # state process
     
     for (t in 1:(T-1)){        
-    
+
     
     logNupdate[t] <- logN[t] + r_V -log(1+gamma*N[t]) -C*exp(logP[t])/(D+N[t])
     logN[t+1] ~ dnorm(logNupdate[t],tau_V)
