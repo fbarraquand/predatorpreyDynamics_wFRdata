@@ -65,11 +65,12 @@ source('BayesianModels.R')
               out <- try(jags(jags.data, inits, parameters, "predprey.txt", n.chains = nc, n.iter = ni, n.burnin = nb, working.directory = getwd())) #, silent=TRUE
               if(!is(out, 'try-error')) break
             }
+            } #end of condition on p_KR
             print(out)
             save(out,file=paste(file_save,"perturbed_fixed_point/sigma=0.05/T=",as.character(timemax[lt]),"/p_KR=",as.character(p_KR[lkr]),"/predpreyJAGS",krep,".RData",sep=""))
             # Store in the appropriate repo 
             # Within sigma = 0.05, T=100,T=50,T=25; within these p_KR=1;p_KR=0.25,p_KR=0. 
-            } #end of condition on p_KR
+            
             
             ### Same instructions for data2 - the noisy limit cycle parameter set [OK, code could be more concise...]
             
@@ -91,12 +92,11 @@ source('BayesianModels.R')
                 out2 <- try(jags(jags.data, inits, parameters, "predprey.txt", n.chains = nc, n.iter = ni, n.burnin = nb, working.directory = getwd())) #, silent=TRUE
                 if(!is(out2, 'try-error')) break
               }
+              } #end of condition on p_KR
               print(out2)
               save(out2,file=paste(file_save,"noisy_limit_cycles/sigma=0.05/T=",as.character(timemax[lt]),"/p_KR=",as.character(p_KR[lkr]),"/predpreyJAGS",krep,".RData",sep=""))
               # Store in the appropriate repo 
               # Within sigma = 0.05, T=100,T=50,T=25; within these p_KR=1;p_KR=0.25,p_KR=0. 
-            
-              } #end of condition on p_KR
             
     } #end of loop on p_KR
     
