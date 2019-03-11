@@ -16,8 +16,8 @@ nrep = 100
 source('BayesianModels.R')
 ## code with the functions that are well encoded
 
-    
-    for (krep in 1:nrep){
+    #for (krep in 1:nrep){
+    for (krep in 31:nrep){
       
       print(krep)
       # Pick one of the 100 repeats and load data
@@ -33,6 +33,14 @@ source('BayesianModels.R')
       data2 = read.csv(paste(file_path2,"predatorPrey_withGaussianFR",krep,".csv",sep=""))
       names(data2)=c("Time","n","p","KR")
       head(data2)
+      
+      ### Checks if the data can be fitted properly, if not -> next iteration. 
+      s1n = sum(is.finite(data1$n)) 
+      s1p = sum(is.finite(data1$p)) 
+      s2n = sum(is.finite(data2$n)) 
+      s2p = sum(is.finite(data2$p)) 
+      all_finite_densities <- (s1n==timemax[1])&(s1p==timemax[1])&(s2n==timemax[1])&(s2p==timemax[1])
+      if (all_finite_densities==FALSE){next} #skip to next iteration for estimation
       
       
       for (lt in 1:length(timemax)){
