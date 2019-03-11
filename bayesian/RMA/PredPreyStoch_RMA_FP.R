@@ -2,24 +2,6 @@
 ### Changed to Rosenzweig-MacArthur version 14/03/2018
 ### Updated 01/06/2017. 
 ### Case with "small noise" on the functional response
-
-### Log of previous edits to other versions ######################################################################################
-
-### Edited 25/05/2015 Add of more diagnostic plots. Problems with the functional response model, I should probably
-# analyze it separarely to see if all components can be identified - this looks quite unclear. 
-###### Edit again 25/05. actually no pb with the FR model, there's just that with the amount of noise, the Beta model for the FR
-# is probably not identifiable and the FR half-sat constant is estimated at zero, which means a constant amount. 
-# There was by the way initially an error in the simulation, FR[t+1]<-C*(1-B)*N[t]/(D+N[t]) was FR[t+1]<-C*(1-B)*N[1]/(D+N[1]) 
-# So the FR was rightfully more constant!! Corrected now. 
-# we can probably force a handling-time or half-sat value but even with an informative prior it will be estimated low. 
-# Keep in mind for the gyr and ptarmigan
-
-### Predator prey-only, fit of functional response (28/04/2015) but direct estimation (same model simulated as fitted). 
-# small previous problem with Beverton-Holt formulation. Now Getz formulation, better. 
-
-### For the functional response, the beta model is perhaps good for simulations, but I feel like we need something else
-# to fit the model. Perhaps a logNormal. 
-
 ##################################################################################################################################
 
 rm(list=ls())
@@ -29,9 +11,10 @@ library("R2jags")      # Load R2jags package
 
 ### Parameters for simulation of Hassell model
 
-n.years<-100  	# Number of years - 25 first, perhaps use 50 or 100 / worked very well with almost no process error on the real scale
+n.years<-200  	# Number of years - 25 first, perhaps use 50 or 100 / worked very well with almost no process error on the real scale
 #N1<-1			# Initial pop size
 #P1<-0.1 ### Too long transients
+
 N1<-4
 P1<-0.7
 
@@ -49,9 +32,9 @@ D<-1.0 #0.6 = quasi-cycles
 epsilon<-0.1
 
 ### Simulation of data
-#set.seed(42) 
+set.seed(42) 
 #set.seed(41)
-set.seed(40)
+#set.seed(40)
 
 y<-N<-P<-FR<-numeric(n.years)
 N[1]<-N1
@@ -79,9 +62,11 @@ plot(N,FR)
     
 #seq(0,1,0.01)
 # Bundle data
-jags.data <- list(T=n.years,logN=log(N),logP=log(P),FR=FR)
 
-sink("ssm.predprey.rma.txt")
+after_transients=101:200
+jags.data <- list(T=length(after_transients),logN=log(N[after_transients]),logP=log(P[after_transients]),FR=FR[after_transients])
+
+sink("predprey.rma.txt")
 cat("
     model {
     
@@ -143,13 +128,13 @@ parameters<-c("r_V","K_V","r_P","epsilon","sigma2_V","sigma2_P","tau_FR","C","D"
 
 # MCMC settings
 nc <- 3 #number of chains
-nb <- 14000 # “burn in”
+nb <- 24000 # “burn in”
 #ni <- 14000# “number of iterations” # that's for a symmetric distrib...
-ni<-34000
+ni<-44000
 nt <- 10 # “thinning”
 
 # run model
-out <- jags(jags.data, inits, parameters, "ssm.predprey.rma.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
+out <- jags(jags.data, inits, parameters, "predprey.rma.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
 print(out, dig = 2)
 
 # Good title for a future paper (if I compute more quantities of Trophic Strength from this...) would be
@@ -184,7 +169,7 @@ lines(N,CE*N/(DE+N))
 lines(N,CEb*N/(DEb+N),col="blue")
 
 ### Now try to fit a model without the FR data. 
-sink("ssm.predprey_without_sepFR.txt")
+sink("predprey_without_sepFR.txt")
 cat("
     model {
     
@@ -245,13 +230,13 @@ parameters<-c("r_V","K_V","r_P","epsilon","sigma2_V","sigma2_P","C","D")
 
 # MCMC settings
 nc <- 3 #number of chains
-nb <- 14000 # “burn in”
+nb <- 24000 # “burn in”
 #ni <- 14000# “number of iterations” # that's for a symmetric distrib...
-ni<-34000
+ni<-44000
 nt <- 10 # “thinning”
 
 # run model
-out2 <- jags(jags.data, inits, parameters, "ssm.predprey_without_sepFR.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
+out2 <- jags(jags.data, inits, parameters, "predprey_without_sepFR.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
 print(out2, dig = 2)
 
 # http://jeromyanglim.tumblr.com/post/37362047458/how-to-get-dic-in-jags
@@ -314,10 +299,9 @@ parcorplot(out,parms = c("r_V","K_V","r_P","epsilon","sigma2_V","sigma2_P","C","
 parcorplot(out2,parms = c("r_V","K_V","r_P","epsilon","sigma2_V","sigma2_P","C","D"))
 dev.off()
 
-
 #### Prior posterior overlap
 ### With both C and D
-pdf(file="PPO_FP_first100.pdf",width=12,height=8)
+pdf(file="PPO_FP_aftertransients.pdf",width=12,height=8)
 par(mfrow=c(2,2),lwd=2,cex=1.2)
 
 C1 = out$BUGSoutput$sims.array[,1,'C']

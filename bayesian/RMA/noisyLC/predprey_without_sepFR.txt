@@ -7,14 +7,14 @@
     
     # Priors prey population dynamics
     r_V ~ dnorm(1,0.001) # below the truth, rather flat prior
-    gamma ~ dunif(0.1,5)
+    K_V ~ dunif(0.2,10)
     sigma_V ~ dunif(0.01,5) # rather vague 
     sigma2_V<-pow(sigma_V, 2)
     tau_V<-pow(sigma_V,-2)
     
     
     #Priors predator population dynamics
-    Q ~ dgamma(0.1,0.1)
+    epsilon ~ dunif(0.01,0.25)
     r_P ~ dnorm(1,0.1)
     sigma_P ~ dunif(0.01,2) # rather vague 
     sigma2_P<-pow(sigma_P, 2)
@@ -32,12 +32,13 @@
     for (t in 1:(T-1)){        
 
     
-    logNupdate[t] <- logN[t] + r_V -log(1+gamma*N[t]) -C*exp(logP[t])/(D+N[t])
+    logNupdate[t] <- logN[t] + r_V -log(1+N[t]/K_V) -C*exp(logP[t])/(D+N[t])
     logN[t+1] ~ dnorm(logNupdate[t],tau_V)
     N[t]<-exp(logN[t])
     
+    # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working
     logP[t+1]~ dnorm(logPupdate[t],tau_P)
-    logPupdate[t] <- logP[t] + r_P - log(1+exp(logP[t])*Q/exp(logN[t]) )  
+    logPupdate[t] <- logP[t] + r_P + epsilon*C*exp(logP[t])/(D+N[t])
     
     }
     

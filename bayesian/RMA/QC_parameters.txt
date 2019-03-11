@@ -1,0 +1,22 @@
+## Other QC parameters
+
+
+n.years<-200  	# Number of years - 25 first, perhaps use 50 or 100 / worked very well with almost no process error on the real scale
+#N1<-1			# Initial pop size
+#P1<-0.1 ### Too long transients
+N1<-2.5
+P1<-0.9
+K<-1			# threshold dd 
+beta<-1			# density-dependence exponent
+rmax_V<-2			# Max AVERAGE growth rate (thus not a true max...)
+rmax_P<-(-0.20) #
+sigma2.proc<-0 #0.05		# worked well with 0.005
+# Process sigma on the log-scale, use the Peretti et al. value. 0.005
+### FR and predator parameters
+C<-10
+D<-0.6 #= quasi-cycles
+epsilon<-0.1
+
+### correction to avoid extinction and weird dynamics
+eps <-0.1
+
