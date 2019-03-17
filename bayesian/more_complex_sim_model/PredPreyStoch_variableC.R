@@ -1,23 +1,12 @@
 ### F. Barraquand 21/04/2015 - Code for analyzing noisy predator-prey system (incl. noise on the functional response) 
-### Edited 25/05/2015 Add of more diagnostic plots. Problems with the functional response model, I should probably
-# analyze it separarely to see if all components can be identified - this looks quite unclear. 
-# There was by the way an error in the simulation, FR[t+1]<-C*(1-B)*N[t]/(D+N[t]) was FR[t+1]<-C*(1-B)*N[1]/(D+N[1]) 
-# So the FR was rightfully more constant!!
-
-### Predator prey-only, fit of functional response (28/04/2015) but direct estimation (same model simulated as fitted). 
-# small previous problem with Beverton-Holt formulation. Now Getz formulation, better. 
-
-### For the functional response, the beta is perhaps good for simulations, but I feel like we need something else
-# to fit the model. Perhaps a logNormal. -> A normal distrib is used here, note it could be truncated. 
+### 17/03/19 -- Modified to make it clear we consider a variable C quantity
 
 rm(list=ls())
 graphics.off()
 
 library("R2jags")      # Load R2jags package
-library("modeest")
 
-### Parameters for simulation of Hassell model
-
+### Parameters for simulation
 n.years<-100  	# Number of years - 25 first, perhaps use 50 or 100 / worked very well with almost no process error on the real scale
 N1<-1			# Initial pop size
 P1<-0.1
@@ -26,12 +15,13 @@ beta<-1			# density-dependence exponent
 rmax_V<-2			# Max AVERAGE growth rate (thus not a true max...)
 rmax_P<-0.5
 sigma2.proc<-0.5 #1		# Process sigma on the log-scale
+### Sigma2 = 0.05 should work as well. 
 
 
 ### FR and predator parameters
 a<-2 #0.5 10 
 b<-5   #3 70
-C<-0.5
+C<-2.5
 D<-1
 Q<-10
 
@@ -47,9 +37,9 @@ rP<-rnorm(n.years-1,rmax_P,sqrt(sigma2.proc))
 
 for (t in 1:(n.years-1)){
   B=rbeta(1,a,b) ### Here I simulate the exact model that we'll fit later
-  FR[t+1]<-C*(1-B)*N[t]/(D+N[t]) 
   N[t+1]<-N[t]*(exp(rV[t])/(1+(N[t]/K)^beta))*exp(-FR[t]*P[t]/N[t])
   P[t+1]<-P[t]*exp(rP[t])/(1+P[t]*Q/N[t])
+  FR[t+1]<-C*(1-B)*N[t+1]/(D+N[t+1]) 
 }
 ## Plotting time series of abundances and FR
 par(mfrow=c(2,2))
@@ -62,7 +52,7 @@ plot(N,FR)
 # Bundle data
 jags.data <- list(T=n.years,logN=log(N),logP=log(P),FR=FR)
 
-sink("ssm.predprey3.txt")
+sink("predprey_constantC.txt")
 cat("
     model {
     
@@ -88,19 +78,9 @@ cat("
     
     #Priors predation parameters 
     tau_FR ~ dgamma(.01,.01)
-    C~dgamma(.01,.01) # uninformative priors OK for that one
-
-    # Setting up informative priors for D, otherwise the estimation does not work. 
-    D~dgamma(sh,ra)
-    sh <- pow(mD,2) / pow(sd,2)
-    ra <-     mD    / pow(sd,2)
-    #sh <- 1 + mD * ra #shape param as a function of mode
-    #ra <- ( mD + sqrt( mD^2 + 4*sd^2 ) ) / ( 2 * sd^2 )
-    mD <-1.5# mean or mode of D, which is the half-saturation constant
-    sd <-2 #reasonable values
-    # http://doingbayesiandataanalysis.blogspot.se/2012/08/gamma-likelihood-parameterized-by-mode.html
-    # check model Leslie to see how she specified priors...
-
+    C~dgamma(.01,.01) # uninformative priors OK 
+    D~dgamma(0.01,0.01)
+  
     # Likelihood
     # state process
 
@@ -141,22 +121,19 @@ ni<-34000
 nt <- 10 # “thinning”
 
 # run model
-out <- jags(jags.data, inits, parameters, "ssm.predprey3.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
+out <- jags(jags.data, inits, parameters, "predprey_constantC.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
 print(out, dig = 2)
 
-# Good title for a future paper (if I compute more quantities of Trophic Strength from this...) would be
-# An integrated assessment of trophic interaction strength. 
 
 # Output summary statistics
 jags.sum<-out$BUGSoutput$summary
-write.table(x=jags.sum,file="JAGSsummary_PredPreyStoch_analysisTer.txt")
+write.table(x=jags.sum,file="JAGSsummary_PredPreyStoch_constantC.txt")
 # MCMC Output
-pdf("Output_MCMC__PredPreyStoch_analysisTer.pdf")
+pdf("Output_MCMC__PredPreyStoch_constantC.pdf")
 out.mcmc<-as.mcmc(out)
 plot(out.mcmc) 
 dev.off()
 
-### Still a problem of no convergence of D even when setting (a,b) to large values... Ask Leslie?
 
 #Isolated model for the functional response only
 
@@ -171,14 +148,13 @@ cat("
     tau_FR ~ dgamma(.01,.01)
     C~dgamma(.01,.01) # uninformative priors OK for that one
     
-    # Setting up informative priors for D, otherwise the estimation does not work. 
+    # Setting up informative priors for D
     D~dgamma(sh,ra)
     sh <- pow(mD,2) / pow(sd,2)
     ra <-     mD    / pow(sd,2)
     mD <-1.5# mean or mode of D, which is the half-saturation constant
     sd <-2 #reasonable values
     # http://doingbayesiandataanalysis.blogspot.se/2012/08/gamma-likelihood-parameterized-by-mode.html
-    # check model Leslie to see how she specified priors...
     
     # Likelihood
     # state process
@@ -221,20 +197,18 @@ DEb<-out.f1$BUGSoutput$mean$D
 fr_fit<-nls(FR~CE*N/(DE+N),start=list(CE=1,DE=1))
 CE<-coef(fr_fit)[1]
 DE<-coef(fr_fit)[2]
-plot(N,FR,ylim=c(0,0.3))
-lines(N,CE*N/(DE+N))
-lines(N,CEb*N/(DEb+N))
+plot(N,FR,ylim=c(0,3))
+curve(CE*x/(DE+x),col="blue",add=TRUE)
+curve(CEb*x/(DEb+x),col="red",add=TRUE)
 CE
 DE
-# so actually the Bayesian estimation is more correct... difficult to estimate a half-saturation constant in that case anyway...
-# most likely, in the gyrfalcon case, even with an informative prior is will be difficult. 
 
 ### Added 30/06/2016
 ### Now we should add the predator-prey model without the FR
 
 
 ### Now try to fit a model without the FR data. 
-sink("ssm.predprey_without_sepFR.txt")
+sink("predprey_without_sepFR.txt")
 cat("
     model {
     
@@ -303,10 +277,103 @@ ni<-34000
 nt <- 10 # “thinning”
 
 # run model
-out2 <- jags(jags.data, inits, parameters, "ssm.predprey_without_sepFR.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
+out2 <- jags(jags.data, inits, parameters, "predprey_without_sepFR.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
 print(out2, dig = 2)
-# http://jeromyanglim.tumblr.com/post/37362047458/how-to-get-dic-in-jags
-print(out,dig=2) # to compare deviance, DIC - check also parameter values.
+
+print(out,dig=2)
 # 
 plot(as.mcmc(out2)) 
 plot(as.mcmc(out)) 
+
+
+#### Fit the exact simulated model 
+sink("predprey_variableC.txt")
+cat("
+    model {
+    
+    # Priors and constraints
+    logN[1] ~ dnorm(0,0.01) # Prior on initial pop size on the log scale
+    logP[1] ~ dnorm(0,0.01) # Prior on initial pop size on the log scale
+    FR[1] ~ dnorm(C*exp(logN[1])/(D+exp(logN[1])),100)
+    
+    # Priors prey population dynamics
+    r_V ~ dnorm(1,0.001) # below the truth, rather flat prior
+    K_V ~ dunif(0.2,10)
+    sigma_V ~ dunif(0.01,5) # rather vague 
+    sigma2_V<-pow(sigma_V, 2)
+    tau_V<-pow(sigma_V,-2)
+    
+    
+    #Priors predator population dynamics
+    Q ~ dgamma(0.1,0.1)
+    r_P ~ dnorm(1,0.1)
+    sigma_P ~ dunif(0.01,2) # rather vague 
+    sigma2_P<-pow(sigma_P, 2)
+    tau_P<-pow(sigma_P,-2)
+    
+    #Priors predation parameters 
+    tau_FR ~ dgamma(.01,.01)
+    C~dgamma(.01,.01) # uninformative priors OK 
+    D~dgamma(0.01,0.01)
+    a~dgamma(0.1,0.1)
+    b~dgamma(0.1,0.1)
+    
+    # Likelihood
+    # state process
+    
+    for (t in 1:(T-1)){        
+    
+    B[t] ~ dbeta(a,b)
+    FRUpdate[t] <- C*(1-B[t])*N[t]/(D+N[t]) #functional response equation, including noise
+    FR[t+1] ~  dnorm(FRUpdate[t],tau_FR) # put Gaussian noise, probably not the best but works
+    
+    logNupdate[t] <- logN[t] + r_V -log(1+N[t]/K_V) -FR[t+1]*exp(logP[t])/N[t]
+    logN[t+1] ~ dnorm(logNupdate[t],tau_V)
+    N[t]<-exp(logN[t])
+    
+    logP[t+1]~ dnorm(logPupdate[t],tau_P)
+    logPupdate[t] <- logP[t] + r_P - log(1+exp(logP[t])*Q/exp(logN[t]) )  
+    
+    }
+    
+    }
+    ",fill=TRUE)
+sink()
+
+
+# Initial values
+inits <- function () {
+  list(sigma_V=runif(1,0.1,2), sigma_P=runif(1,0.1,2), r_V=runif(1,0.1,2),r_P=runif(1,0.1,2), K_V=runif(1,0.2,8), Q=runif(1,0,5),tau_FR=runif(1,1,10),C=runif(1,10,100),D=runif(1,0.01,30),a=runif(1,0.5,3),b=runif(1,0.5,3))}
+
+# Parameters monitored
+parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D")#"logN","logP","FR"
+
+
+# MCMC settings
+nc <- 3 #number of chains
+nb <- 14000 # “burn in”
+#ni <- 14000# “number of iterations” # that's for a symmetric distrib...
+ni<-34000
+nt <- 10 # “thinning”
+
+# run model
+out3 <- jags(jags.data, inits, parameters, "predprey_variableC.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
+print(out3, dig = 2)
+# 
+# Inference for Bugs model at "predprey_variableC.txt", fit using jags,
+# 3 chains, each with 34000 iterations (first 14000 discarded), n.thin = 10
+# n.sims = 6000 iterations saved
+# mu.vect sd.vect   2.5%    25%    50%    75%  97.5% Rhat n.eff
+# C           2.29    0.18   1.92   2.18   2.30   2.40   2.62 1.01   230
+# D           0.96    0.16   0.65   0.86   0.96   1.07   1.27 1.00  1200
+# K_V         2.13    1.06   0.62   1.38   1.93   2.68   4.74 1.00  1400
+# Q          10.75    3.07   5.69   8.61  10.45  12.53  17.80 1.00  6000
+# a           1.29    0.63   0.24   0.87   1.23   1.62   2.79 1.03   150
+# b           4.15    1.22   2.04   3.34   4.04   4.81   6.95 1.01   210
+# r_P         0.45    0.11   0.24   0.37   0.44   0.51   0.66 1.00  6000
+# r_V         1.54    0.39   0.91   1.27   1.50   1.75   2.42 1.00  1300
+# sigma2_P    0.41    0.06   0.31   0.37   0.41   0.45   0.55 1.00  2300
+# sigma2_V    0.56    0.08   0.42   0.50   0.55   0.61   0.74 1.00  6000
+# deviance  309.08   71.21 166.29 258.87 312.86 363.31 433.03 1.00   690
+
+### Fairly good!
