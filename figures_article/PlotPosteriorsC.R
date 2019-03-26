@@ -31,10 +31,10 @@ for (lt in 1:length(timemax))
       estim_mean <- rbind(estim_mean,out$BUGSoutput$mean$C)
       if (krep==1){
         y=density(out$BUGSoutput$sims.list$C,bw=0.05)
-        plot(y,ylim=c(0,10),lwd=0.5,xlim=c(0,5),ylab="Pr(C|data)", xlab=paste("T = ",timemax[lt],", p_KR = ",p_KR[lkr],sep=""),main="",col="grey")
+        plot(y,ylim=c(0,10),lwd=0.5,xlim=c(0,5),ylab="Pr(C|data)", xlab=paste("T = ",timemax[lt],", p_KR = ",p_KR[lkr],sep=""),main="",col="black")
         abline(v=2.5,col="red",lwd=3)
       } else {
-        lines(density(out$BUGSoutput$sims.list$C,bw=0.04),lwd=0.2,col="grey")
+        lines(density(out$BUGSoutput$sims.list$C,bw=0.04),lwd=0.2,col="black")
       }
     }
   }
@@ -63,10 +63,10 @@ for (lt in 1:length(timemax))
       estim_mean <- rbind(estim_mean,out$BUGSoutput$mean$C)
       if (krep==1){
         y=density(out2$BUGSoutput$sims.list$C,bw=0.2)
-        plot(y,ylim=c(0,2.5),lwd=0.5,xlim=c(0,20),ylab="Pr(C|data)", xlab=paste("T = ",timemax[lt],", p_KR = ",p_KR[lkr],sep=""),main="",col="grey")
+        plot(y,ylim=c(0,2.5),lwd=0.5,xlim=c(0,20),ylab="Pr(C|data)", xlab=paste("T = ",timemax[lt],", p_KR = ",p_KR[lkr],sep=""),main="",col="black")
         abline(v=15,col="red",lwd=3)
       } else {
-        lines(density(out2$BUGSoutput$sims.list$C,bw=0.2),lwd=0.2,col="grey")
+        lines(density(out2$BUGSoutput$sims.list$C,bw=0.2),lwd=0.2,col="black")
       }
     }
   }
@@ -94,10 +94,10 @@ for (lt in 1:length(timemax))
       estim_mean <- rbind(estim_mean,out$BUGSoutput$mean$D)
       if (krep==1){
         y=density(out$BUGSoutput$sims.list$D,bw=0.05)
-        plot(y,ylim=c(0,10),lwd=0.5,xlim=c(0,3),ylab="Pr(D|data)", xlab=paste("T = ",timemax[lt],", p_KR = ",p_KR[lkr],sep=""),main="",col="grey")
+        plot(y,ylim=c(0,10),lwd=0.5,xlim=c(0,3),ylab="Pr(D|data)", xlab=paste("T = ",timemax[lt],", p_KR = ",p_KR[lkr],sep=""),main="",col="black")
         abline(v=1,col="red",lwd=3)
       } else {
-        lines(density(out$BUGSoutput$sims.list$D,bw=0.01),lwd=0.2,col="grey")
+        lines(density(out$BUGSoutput$sims.list$D,bw=0.01),lwd=0.2,col="black")
       }
     }
   }
@@ -123,10 +123,10 @@ for (lt in 1:length(timemax))
       estim_mean <- rbind(estim_mean,out$BUGSoutput$mean$D)
       if (krep==1){
         y=density(out2$BUGSoutput$sims.list$D,bw=0.01)
-        plot(y,ylim=c(0,20),lwd=0.5,xlim=c(0,1),ylab="Pr(D|data)", xlab=paste("T = ",timemax[lt],", p_KR = ",p_KR[lkr],sep=""),main="",col="grey")
+        plot(y,ylim=c(0,20),lwd=0.5,xlim=c(0,1),ylab="Pr(D|data)", xlab=paste("T = ",timemax[lt],", p_KR = ",p_KR[lkr],sep=""),main="",col="black")
         abline(v=0.25,col="red",lwd=3)
       } else {
-        lines(density(out2$BUGSoutput$sims.list$D,bw=0.005),lwd=0.2,col="grey")
+        lines(density(out2$BUGSoutput$sims.list$D,bw=0.005),lwd=0.2,col="black")
       }
     }
   }
