@@ -337,8 +337,8 @@ dev.off()
 
 ## All curves for (C,D) in one Fig.
 library(scales)
-png('estimation_curves_FR_LC.png',res=300,width=4000,height=4000)
-par(mfrow=c(2,2),cex=1.2) #NB cex =0.6 needed for width = 2000
+png('estimation_curves_FR_LC.png',res=300,width=2000,height=2000)
+par(mfrow=c(2,2),cex=0.8) #NB cex =0.6 needed for width = 2000
 
 Clist = out$BUGSoutput$sims.array[,,'C']
 Dlist = out$BUGSoutput$sims.array[,,'D']
@@ -421,8 +421,8 @@ out2$BUGSoutput$mean$C*Nprey/(out2$BUGSoutput$mean$D+Nprey)
 # For the prey
 
 
-png('estimation_curves_preydd_LC.png',res=300,width=4000,height=4000)
-par(mfrow=c(2,2),cex=1.2) 
+png('estimation_curves_preydd_LC.png',res=300,width=2000,height=2000)
+par(mfrow=c(2,2),cex=0.8) #1.5 for width=4000 
 
 rlist = out$BUGSoutput$sims.array[,,'r_V']
 gammalist = out$BUGSoutput$sims.array[,,'gamma']
