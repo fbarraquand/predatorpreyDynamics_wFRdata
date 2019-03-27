@@ -8,14 +8,13 @@
     tau_FR ~ dgamma(.01,.01)
     C~dgamma(.01,.01) # uninformative priors OK for that one
     
-    # Setting up informative priors for D, otherwise the estimation does not work. 
+    # Setting up informative priors for D
     D~dgamma(sh,ra)
     sh <- pow(mD,2) / pow(sd,2)
     ra <-     mD    / pow(sd,2)
     mD <-1.5# mean or mode of D, which is the half-saturation constant
     sd <-2 #reasonable values
     # http://doingbayesiandataanalysis.blogspot.se/2012/08/gamma-likelihood-parameterized-by-mode.html
-    # check model Leslie to see how she specified priors...
     
     # Likelihood
     # state process

@@ -39,7 +39,7 @@
     # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working
     logP[t+1]~ dnorm(logPupdate[t],tau_P)
     logPupdate[t] <- logP[t] + r_P - log(1+exp(logP[t])*Q/exp(logN[t]) )  
-    
+
     ### Need to add a functional response model in there - otherwise there's just not the same amount of data
     
     }
