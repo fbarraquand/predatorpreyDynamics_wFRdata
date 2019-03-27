@@ -4,6 +4,7 @@
     # Priors and constraints
     logN[1] ~ dnorm(0,0.01) # Prior on initial pop size on the log scale
     logP[1] ~ dnorm(0,0.01) # Prior on initial pop size on the log scale
+    FR[1] ~ dnorm(C*exp(logN[1])/(mD+exp(logN[1])),100)
     
     # Priors prey population dynamics
     r_V ~ dnorm(1,0.001) # below the truth, rather flat prior
@@ -21,25 +22,29 @@
     tau_P<-pow(sigma_P,-2)
     
     #Priors predation parameters 
-    
-    C~dgamma(.01,.01) # 
-    D~dgamma(.01,.01)
-    # check model Leslie to see how she specified priors...
+    sigma_FR ~ dunif(0,0.1) ## very very small
+    tau_FR <- pow(sigma_FR,-2)
+    C~dgamma(.01,.01) # uninformative priors OK 
+    mD~dgamma(0.1,0.1)
+    sD~dgamma(0.1,0.1)
+    sh <- pow(mD,2) / pow(sD,2)
+    ra <-     mD    / pow(sD,2)
     
     # Likelihood
     # state process
     
     for (t in 1:(T-1)){        
     
+    D[t] ~ dgamma(sh,ra)
+    FRUpdate[t] <- C*N[t]/(D[t]+N[t]) #functional response equation, including noise
+    FR[t+1] ~  dnorm(FRUpdate[t],tau_FR) # technical trick
     
-    logNupdate[t] <- logN[t] + r_V -log(1+N[t]*gamma) -C*exp(logP[t])/(D+N[t])
+    logNupdate[t] <- logN[t] + r_V -log(1+N[t]*gamma) -FR[t+1]*exp(logP[t])/N[t]
     logN[t+1] ~ dnorm(logNupdate[t],tau_V)
     N[t]<-exp(logN[t])
     
     logP[t+1]~ dnorm(logPupdate[t],tau_P)
     logPupdate[t] <- logP[t] + r_P - log(1+exp(logP[t])*Q/exp(logN[t]) )  
-    
-    ### Need to add a functional response model in there - otherwise there's just not the same amount of data
     
     }
     
