@@ -280,6 +280,9 @@ nt <- 10 # “thinning”
 out2 <- jags(jags.data, inits, parameters, "predprey_without_sepFR.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
 print(out2, dig = 2)
 
+jags.sum<-out2$BUGSoutput$summary
+write.table(x=jags.sum,file="JAGSsummary_PredPreyStochC_deterFR.txt")
+
 print(out,dig=2)
 # 
 plot(as.mcmc(out2)) 
@@ -346,7 +349,7 @@ inits <- function () {
   list(sigma_V=runif(1,0.1,2), sigma_P=runif(1,0.1,2), r_V=runif(1,0.1,2),r_P=runif(1,0.1,2), K_V=runif(1,0.2,8), Q=runif(1,0,5),tau_FR=runif(1,1,10),C=runif(1,10,100),D=runif(1,0.01,30),a=runif(1,0.5,3),b=runif(1,0.5,3))}
 
 # Parameters monitored
-parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D")#"logN","logP","FR"
+parameters<-c("r_V","K_V","r_P","Q","sigma2_V","sigma2_P","a","b","C","D","tau_FR")#"logN","logP","FR"
 
 
 # MCMC settings
@@ -377,3 +380,51 @@ print(out3, dig = 2)
 # deviance  309.08   71.21 166.29 258.87 312.86 363.31 433.03 1.00   690
 
 ### Fairly good!
+
+#### Other tries -- some stochasticity in the chains
+
+# Inference for Bugs model at "predprey_variableC.txt", fit using jags,
+# 3 chains, each with 34000 iterations (first 14000 discarded), n.thin = 10
+# n.sims = 6000 iterations saved
+# mu.vect sd.vect   2.5%    25%    50%    75%  97.5%           Rhat n.eff
+# C           1.76    0.13   1.52   1.67   1.75   1.83   2.04 1.03    64
+# D           0.34    0.13   0.08   0.26   0.34   0.42   0.60 1.11   270
+# K_V         1.46    0.85   0.31   0.85   1.30   1.88   3.56 1.00   930
+# Q          10.73    3.08   5.70   8.52  10.38  12.56  17.43 1.00  6000
+# a           0.62    0.76   0.13   0.26   0.42   0.66   3.72 1.19    17
+# b           5.56    5.31   1.49   2.73   3.80   5.98  22.08 1.06    47
+# r_P         0.44    0.11   0.24   0.37   0.44   0.52   0.67 1.00  6000
+# r_V         1.88    0.49   1.09   1.53   1.82   2.16   3.07 1.00   820
+# sigma2_P    0.41    0.06   0.31   0.37   0.41   0.45   0.55 1.00  4400
+# sigma2_V    0.59    0.09   0.44   0.52   0.58   0.64   0.78 1.00  5200
+# deviance  485.01   27.35 424.31 467.48 487.60 505.91 528.40 1.00  2000
+# 
+# For each parameter, n.eff is a crude measure of effective sample size,
+# and Rhat is the potential scale reduction factor (at convergence, Rhat=1).
+# 
+# DIC info (using the rule, pD = var(deviance)/2)
+# pD = 373.7 and DIC = 858.7
+# DIC is an estimate of expected predictive error (lower deviance is better).
+
+# Inference for Bugs model at "predprey_variableC.txt", fit using jags,
+# 3 chains, each with 34000 iterations (first 14000 discarded), n.thin = 10
+# n.sims = 6000 iterations saved
+# mu.vect sd.vect   2.5%    25%    50%    75%  97.5% Rhat n.eff
+# C           1.74    0.13   1.50   1.65   1.73   1.83   2.02 1.02    95
+# D           0.34    0.13   0.08   0.25   0.33   0.42   0.61 1.22   120
+# K_V         1.51    0.92   0.31   0.87   1.33   1.93   3.78 1.00   820
+# Q          10.69    3.11   5.58   8.48  10.35  12.53  17.66 1.00  4000
+# a           0.52    0.51   0.08   0.22   0.37   0.64   1.95 1.04    84
+# b           5.59    5.56   1.33   2.60   3.74   6.05  23.25 1.02   120
+# r_P         0.44    0.11   0.23   0.37   0.44   0.51   0.66 1.00  6000
+# r_V         1.86    0.50   1.06   1.50   1.79   2.15   3.06 1.00   770
+# sigma2_P    0.41    0.06   0.31   0.37   0.41   0.45   0.55 1.00  5200
+# sigma2_V    0.58    0.09   0.44   0.52   0.58   0.64   0.78 1.00  3900
+# deviance  487.60   27.41 426.33 470.90 490.60 508.62 528.58 1.02   140
+# 
+# For each parameter, n.eff is a crude measure of effective sample size,
+# and Rhat is the potential scale reduction factor (at convergence, Rhat=1).
+# 
+# DIC info (using the rule, pD = var(deviance)/2)
+# pD = 370.1 and DIC = 857.7
+# DIC is an estimate of expected predictive error (lower deviance is better).
