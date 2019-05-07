@@ -27,7 +27,7 @@ head(data2)
 ## Sourcing the functions to compute the likelihood
 source('../frequentist/LikelihoodFunctions.R')
 source('figlabel.R')
-cex_labels = 1.2
+cex_labels = 1.3
 
 ### Parameters of the model - fixed point parameter set
 K<-1			# threshold dd 
@@ -44,7 +44,7 @@ theta_true2  = c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C,D)
 
 pdf(file="likelihood_surfaces_FP.pdf",width=12,height=8)
 
-par(mfrow=c(2,3))
+par(mfrow=c(2,3),cex=1) #cex=1.1 too small
 
 ### r, gamma
 niter = 50
@@ -61,8 +61,9 @@ for (i in 1:niter){
   }
 }
 custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
-contour(theta_true1[1]+r_new,theta_true1[2]+g_new,llbis,levels=custom_levels,xlab="r",ylab=expression(gamma))
+contour(theta_true1[1]+r_new,theta_true1[2]+g_new,llbis,levels=custom_levels,xlab="r",ylab=expression(gamma),cex.lab=1.3)
 fig_label("(A)",pos="topleft",cex=cex_labels)
+points(x=theta_true1[1], y=theta_true1[2], type="p", pch=4, col="red",cex=2,lwd=3)
 
 ### s,Q
 niter = 50
@@ -79,8 +80,10 @@ for (i in 1:niter){
   }
 }
 custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
-contour(theta_true1[4]+rP_new,theta_true1[5]+q_new,llbis,levels=custom_levels,xlab="s",ylab="Q")
+contour(theta_true1[4]+rP_new,theta_true1[5]+q_new,llbis,levels=custom_levels,xlab="s",ylab="Q",cex.lab=1.3)
 fig_label("(B)",pos="topleft",cex=cex_labels)
+points(x=theta_true1[4], y=theta_true1[5], type="p", pch=4, col="red",cex=2,lwd=3)
+
 
 ### C,D
 DeltaC = 0.25 # C is +/- 1 -> produces not well defined enough maximum
@@ -100,8 +103,9 @@ for (i in 1:niter){
 min(llbis)
 custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
 #contour(theta_true[7]+C_new,theta_true[8]+D_new,llbis,nlevels=20,xlab="C",ylab="D")
-contour(theta_true1[7]+C_new,theta_true1[8]+D_new,llbis,levels=custom_levels,xlab="C",ylab="D")
+contour(theta_true1[7]+C_new,theta_true1[8]+D_new,llbis,levels=custom_levels,xlab="C",ylab="D",cex.lab=1.3)
 fig_label("(C)",pos="topleft",cex=cex_labels)
+points(x=theta_true1[7], y=theta_true1[8], type="p", pch=4, col="red",cex=2,lwd=3)
 
 ### --------------- Without the KR data ------------------------ 
 
@@ -120,8 +124,10 @@ for (i in 1:niter){
   }
 }
 custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
-contour(theta_true2[1]+r_new,theta_true2[2]+g_new,llbis,nlevels=50,xlab="r",ylab=expression(gamma))
+contour(theta_true2[1]+r_new,theta_true2[2]+g_new,llbis,nlevels=50,xlab="r",ylab=expression(gamma),cex.lab=1.3)
 fig_label("(D)",pos="topleft",cex=cex_labels)
+points(x=theta_true2[1], y=theta_true2[2], type="p", pch=4, col="red",cex=2,lwd=3)
+
 
 ### s,Q
 niter = 50
@@ -138,8 +144,10 @@ for (i in 1:niter){
   }
 }
 custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
-contour(theta_true2[4]+rP_new,theta_true2[5]+q_new,llbis,levels=custom_levels,xlab="s",ylab="Q")
+contour(theta_true2[4]+rP_new,theta_true2[5]+q_new,llbis,levels=custom_levels,xlab="s",ylab="Q",cex.lab=1.3)
 fig_label("(E)",pos="topleft",cex=cex_labels)
+points(x=theta_true2[4], y=theta_true2[5], type="p", pch=4, col="red",cex=2,lwd=3)
+
 
 ### C,D
 DeltaC = 2 #0.25 # C is +/- 1 -> produces not well defined enough maximum
@@ -159,8 +167,10 @@ for (i in 1:niter){
 min(llbis)
 custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
 #contour(theta_true[7]+C_new,theta_true[8]+D_new,llbis,nlevels=20,xlab="C",ylab="D")
-contour(theta_true2[7]+C_new,theta_true2[8]+D_new,llbis,levels=custom_levels,xlab="C",ylab="D")
+contour(theta_true2[7]+C_new,theta_true2[8]+D_new,llbis,levels=custom_levels,xlab="C",ylab="D",cex.lab=1.3)
 fig_label("(F)",pos="topleft",cex=cex_labels)
+points(x=theta_true2[7], y=theta_true2[8], type="p", pch=4, col="red",cex=2,lwd=3)
+
 dev.off()
 
 #######################################################################################
@@ -182,7 +192,7 @@ theta_true2  = c(rmax_V,1/K,sqrt(0.05),rmax_P,Q,sqrt(0.05),C,D)
 
 pdf(file="likelihood_surfaces_LC.pdf",width=12,height=8)
 
-par(mfrow=c(2,3))
+par(mfrow=c(2,3),cex=1)
 
 ### r, gamma
 niter = 50
@@ -199,8 +209,10 @@ for (i in 1:niter){
   }
 }
 custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
-contour(theta_true1[1]+r_new,theta_true1[2]+g_new,llbis,levels=custom_levels,xlab="r",ylab=expression(gamma))
+contour(theta_true1[1]+r_new,theta_true1[2]+g_new,llbis,levels=custom_levels,xlab="r",ylab=expression(gamma),cex.lab=1.3)
 fig_label("(A)",pos="topleft",cex=cex_labels)
+points(x=theta_true1[1], y=theta_true1[2], type="p", pch=4, col="red",cex=2,lwd=3)
+
 
 ### s,Q
 niter = 50
@@ -217,8 +229,9 @@ for (i in 1:niter){
   }
 }
 custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
-contour(theta_true1[4]+rP_new,theta_true1[5]+q_new,llbis,levels=custom_levels,xlab="s",ylab="Q")
+contour(theta_true1[4]+rP_new,theta_true1[5]+q_new,llbis,levels=custom_levels,xlab="s",ylab="Q",cex.lab=1.3)
 fig_label("(B)",pos="topleft",cex=cex_labels)
+points(x=theta_true1[4], y=theta_true1[5], type="p", pch=4, col="red",cex=2,lwd=3)
 
 ### C,D
 DeltaC = 3 # C is +/- 1 
@@ -238,8 +251,10 @@ for (i in 1:niter){
 min(llbis)
 custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
 #contour(theta_true[7]+C_new,theta_true[8]+D_new,llbis,nlevels=20,xlab="C",ylab="D")
-contour(theta_true1[7]+C_new,theta_true1[8]+D_new,llbis,levels=custom_levels,xlab="C",ylab="D")
+contour(theta_true1[7]+C_new,theta_true1[8]+D_new,llbis,levels=custom_levels,xlab="C",ylab="D",cex.lab=1.3)
 fig_label("(C)",pos="topleft",cex=cex_labels)
+points(x=theta_true1[7], y=theta_true1[8], type="p", pch=4, col="red",cex=2,lwd=3)
+
 
 ### --------------- Without the KR data ------------------------ 
 
@@ -258,8 +273,9 @@ for (i in 1:niter){
   }
 }
 custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
-contour(theta_true2[1]+r_new,theta_true2[2]+g_new,llbis,nlevels=50,xlab="r",ylab=expression(gamma))
+contour(theta_true2[1]+r_new,theta_true2[2]+g_new,llbis,nlevels=50,xlab="r",ylab=expression(gamma),cex.lab=1.3)
 fig_label("(D)",pos="topleft",cex=cex_labels)
+points(x=theta_true2[1], y=theta_true2[1], type="p", pch=4, col="red",cex=2,lwd=3)
 
 ### s,Q
 niter = 50
@@ -276,8 +292,10 @@ for (i in 1:niter){
   }
 }
 custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
-contour(theta_true2[4]+rP_new,theta_true2[5]+q_new,llbis,levels=custom_levels,xlab="s",ylab="Q")
+contour(theta_true2[4]+rP_new,theta_true2[5]+q_new,llbis,levels=custom_levels,xlab="s",ylab="Q",cex.lab=1.3)
 fig_label("(E)",pos="topleft",cex=cex_labels)
+points(x=theta_true2[4], y=theta_true2[5], type="p", pch=4, col="red",cex=2,lwd=3)
+
 
 ### C,D
 DeltaC = 3 #0.25 # C is +/- 1 -> produces not well defined enough maximum
@@ -297,6 +315,8 @@ for (i in 1:niter){
 min(llbis)
 custom_levels=quantile(llbis,probs=c(0.025,0.05,0.075,0.1,0.25,0.5,0.75),na.rm=T)
 #contour(theta_true[7]+C_new,theta_true[8]+D_new,llbis,nlevels=20,xlab="C",ylab="D")
-contour(theta_true2[7]+C_new,theta_true2[8]+D_new,llbis,levels=custom_levels,xlab="C",ylab="D")
+contour(theta_true2[7]+C_new,theta_true2[8]+D_new,llbis,levels=custom_levels,xlab="C",ylab="D",cex.lab=1.3)
 fig_label("(F)",pos="topleft",cex=cex_labels)
+points(x=theta_true2[7], y=theta_true2[8], type="p", pch=4, col="red",cex=2,lwd=3)
+
 dev.off()
