@@ -21,22 +21,23 @@
     tau_P<-pow(sigma_P,-2)
     
     #Priors predation parameters 
-    C ~ dlnorm(0,0.5) #C~dgamma(.01,.01)
-    D ~ dlnorm(0,0.5) #D~gamma(.01,.01)
-
+    C~dgamma(.01,.01) # 
+    D~dgamma(.01,.01)
+    # check model Leslie to see how she specified priors...
 
     # Likelihood
     # state process
 
     for (t in 1:(T-1)){    
     
+    
     logN[t+1] ~ dnorm(logNupdate[t],tau_V)
-    logNupdate[t] <- logN[t] + r_V -log(1+N[t]/K_V) -C*exp(logP[t])/(D+N[t])
+    logNupdate[t] <- logN[t] + r_V -log(1+N[t]/K_V) -C*P[t]/(D+N[t])
     N[t]<-exp(logN[t])
-
+    P[t]<-exp(logP[t])
     # for some reason, log(1+(exp(r_V)-1)*N[t]/K_V) was not working
     logP[t+1]~ dnorm(logPupdate[t],tau_P)
-    logPupdate[t] <- logP[t] + r_P - log(1+exp(logP[t])*Q/exp(logN[t]) )  
+    logPupdate[t] <- logP[t] + r_P - log(1+P[t]*Q/N[t])  
     
     }
     

@@ -41,8 +41,11 @@ for (t in 1:(n.years-1)){
   P[t+1]<-P[t]*exp(rP[t])/(1+P[t]*Q/N[t])
 }
 ## Plotting time series
-plot(1:n.years,N,type="b")
-lines(1:n.years,P,type="b")
+plot(1:n.years,N,type="b",ylim=c(0,max(N)), col="blue")
+par(new = TRUE)
+plot(1:n.years,P, axes=F, col="red",xlab=NA, ylab=NA,type="b")
+axis(side = 4)
+#mtext(side = 4, line = 3, 'P')
 
 # Bundle data
 jags.data <- list(T=n.years,logN=log(N),logP=log(P))
