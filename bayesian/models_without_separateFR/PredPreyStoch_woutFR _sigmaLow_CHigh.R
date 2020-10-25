@@ -10,7 +10,6 @@ rm(list=ls())
 graphics.off()
 
 library("R2jags")      # Load R2jags package
-#library("modeest")
 
 ### Parameters for simulation of Hassell model
 
@@ -28,7 +27,9 @@ D<-1
 Q<-10
 
 ### Simulation of data
-set.seed(41) 
+#set.seed(41) 
+#set.seed(42) 
+set.seed(43) 
 y<-N<-P<-numeric(n.years)
 N[1]<-N1
 P[1]<-P1
@@ -36,7 +37,6 @@ P[1]<-P1
 rV<-rnorm(n.years-1,rmax_V,sqrt(sigma2.proc))
 rP<-rnorm(n.years-1,rmax_P,sqrt(sigma2.proc))
 for (t in 1:(n.years-1)){
-  
   N[t+1]<-N[t]*(exp(rV[t])/(1+(N[t]/K)^beta))*exp(-C*P[t]/(D+N[t]))
   P[t+1]<-P[t]*exp(rP[t])/(1+P[t]*Q/N[t])
 }
