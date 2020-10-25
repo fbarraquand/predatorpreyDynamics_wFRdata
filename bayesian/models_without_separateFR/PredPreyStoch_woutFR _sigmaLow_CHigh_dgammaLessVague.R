@@ -4,7 +4,8 @@
 # Looks like the FR parameters are the most difficult to estimate indirectly, which is interesting for a 
 # joint model fit. 
 
-# small previous problem with Beverton-Holt formulation. Now Getz formulation, better. 
+## Partially fixed by the priors here. 
+
 
 rm(list=ls())
 graphics.off()
@@ -28,7 +29,9 @@ D<-1
 Q<-10
 
 ### Simulation of data
-set.seed(42) 
+#set.seed(42) 
+set.seed(43)
+
 y<-N<-P<-numeric(n.years)
 N[1]<-N1
 P[1]<-P1
