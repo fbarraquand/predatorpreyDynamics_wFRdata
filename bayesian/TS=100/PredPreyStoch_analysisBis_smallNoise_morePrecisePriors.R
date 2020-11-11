@@ -104,8 +104,8 @@ cat("
     
     #Priors predation parameters 
     tau_FR ~ dgamma(.01,.01)
-    C~dgamma(2,0.1) #C~dgamma(1,1) # 
-    D~dgamma(2,0.1) #D~dgamma(2,1)
+    C~dgamma(2,1) #C~dgamma(2,0.1) # beware, curve(dgamma(x,2,1),xlim=c(0,10)) in R
+    D~dgamma(2,1) #D~dgamma(2,0.1)
     # check model Leslie to see how she specified priors...
 
     # Likelihood
@@ -170,8 +170,8 @@ fr_fit<-nls(FR~CE*N/(DE+N),start=list(CE=1,DE=1))
 CE<-coef(fr_fit)[1]
 DE<-coef(fr_fit)[2]
 plot(N,FR,ylim=c(0,max(FR,na.rm=T)))
-lines(N,CE*N/(DE+N))
-lines(N,CEb*N/(DEb+N),col="blue")
+curve(CE*x/(DE+x),add=TRUE)
+curve(CEb*x/(DEb+x),col="blue",add=TRUE)
 
 ### Now try to fit a model without the FR data. 
 sink("predprey_without_sepFR.txt")
@@ -199,8 +199,8 @@ cat("
     
     #Priors predation parameters 
     
-    C~dgamma(2,0.1) #C~dgamma(1,1) # 
-    D~dgamma(2,0.1) #D~dgamma(2,1)
+    C~dgamma(2,1) # C~dgamma(2,0.1)
+    D~dgamma(2,1) # C~dgamma(2,0.1)
     
     # check model Leslie to see how she specified priors...
     
@@ -245,7 +245,24 @@ nt <- 10 # “thinning”
 out2 <- jags(jags.data, inits, parameters, "predprey_without_sepFR.txt", n.chains=nc, n.thin=nt, n.iter=ni, n.burnin=nb, working.directory = getwd())
 print(out2, dig = 2)
 print(out,dig=2) # 
-# 
+
+# Inference for Bugs model at "predprey.txt", fit using jags,
+# 3 chains, each with 34000 iterations (first 14000 discarded), n.thin = 10
+# n.sims = 6000 iterations saved
+# mu.vect sd.vect   2.5%    25%    50%    75%  97.5% Rhat n.eff
+# C           2.58    0.12   2.35   2.49   2.57   2.66   2.84 1.00  4300
+# D           1.24    0.32   0.66   1.01   1.22   1.44   1.91 1.00  4000
+# K_V         1.65    0.62   0.61   1.21   1.58   2.04   3.04 1.04    63
+# Q          11.16    2.89   6.43   9.09  10.88  12.87  17.65 1.01   420
+# r_P         0.54    0.10   0.35   0.47   0.53   0.61   0.76 1.01   420
+# r_V         1.71    0.32   1.20   1.48   1.67   1.87   2.46 1.04    61
+# sigma2_P    0.05    0.01   0.03   0.04   0.05   0.05   0.06 1.00  6000
+# sigma2_V    0.05    0.01   0.04   0.05   0.05   0.06   0.07 1.00  4000
+# tau_FR     17.48    2.49  12.98  15.71  17.42  19.09  22.52 1.00  3300
+# deviance  -23.39    4.23 -29.80 -26.53 -23.98 -20.95 -13.52 1.00   740
+
+
+# For C ~ dgamma(2,0.1), D ~ dgamma(2,0.1)
 # Inference for Bugs model at "predprey_without_sepFR.txt", fit using jags,
 # 3 chains, each with 34000 iterations (first 14000 discarded), n.thin = 10
 # n.sims = 6000 iterations saved
