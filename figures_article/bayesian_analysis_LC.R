@@ -292,6 +292,7 @@ legend("topright",legend = c("prior","chain 1","chain 2","chain 3"),col=c("black
 dev.off()
 
 ### Plot pair posterior densities
+library(scales)
 postsamples=cbind(out$BUGSoutput$sims.list$r_V,
 out$BUGSoutput$sims.list$gamma,
 out$BUGSoutput$sims.list$r_P,
@@ -299,7 +300,7 @@ out$BUGSoutput$sims.list$Q,
 out$BUGSoutput$sims.list$C,
 out$BUGSoutput$sims.list$D)
 png(file="PairPosteriorPlot_withKRdata_LC.png", width = 1200, height = 1200,res=300)
-pairs(postsamples,c("r","gamma","s","Q","C","D"))
+pairs(postsamples,c("r",expression(gamma),"s","Q","C","D"),col=alpha("grey",0.1))
 dev.off()
 
 postsamples2=cbind(out2$BUGSoutput$sims.list$r_V,
@@ -309,7 +310,7 @@ postsamples2=cbind(out2$BUGSoutput$sims.list$r_V,
                   out2$BUGSoutput$sims.list$C,
                   out2$BUGSoutput$sims.list$D)
 png(file="PairPosteriorPlot_withoutKRdata_LC.png", width = 1200, height = 1200, res=300)
-pairs(postsamples2,c("r","gamma","s","Q","C","D"))
+pairs(postsamples2,c("r",expression(gamma),"s","Q","C","D"),col=alpha("grey",0.1))
 dev.off()
 # 
 # pdf(file="PairCorrelPosteriorPlot.pdf",width = 4,height = 8)
@@ -336,7 +337,7 @@ dev.off()
 #### Reproduce the FR curve without and without the correlations between parameters
 
 ## All curves for (C,D) in one Fig.
-library(scales)
+
 png('estimation_curves_FR_LC.png',res=300,width=2000,height=2000)
 par(mfrow=c(2,2),cex=0.8) #NB cex =0.6 needed for width = 2000
 
@@ -344,7 +345,7 @@ Clist = out$BUGSoutput$sims.array[,,'C']
 Dlist = out$BUGSoutput$sims.array[,,'D']
 n = length(Clist)
 ndens = 100
-Nprey <- seq(1,20,length=ndens) #density index
+Nprey <- seq(0,20,length=ndens) #density index
 FRstoch = matrix(NA,nrow = n, ncol = ndens)
 
 for (i in 1:n){
@@ -352,7 +353,7 @@ for (i in 1:n){
   {
     FRstoch[i,dens] = Clist[i]*Nprey[dens]/(Dlist[i]+Nprey[dens])
   }
-  if (i == 1){plot(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Functional response',ylim=c(0,20),xlim=c(1,10),xlab='N prey',main='With (C,D) correlations')
+  if (i == 1){plot(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Functional response',ylim=c(0,20),xlim=c(0,10),xlab='N prey',main=expression('With (C,D) correlations'))
   }
   else {lines(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
   lines(Nprey,C*Nprey/(D+Nprey),col=alpha('red',1.0))
@@ -367,7 +368,7 @@ for (i in 1:n){
   {
     FRstoch[i,dens] = Clist[i]*Nprey[dens]/(Dlist[i]+Nprey[dens])
   }
-  if (i == 1){plot(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Functional response',ylim=c(0,20),xlim=c(1,10),xlab='N prey',main='Without (C,D) correlations')
+  if (i == 1){plot(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Functional response',ylim=c(0,20),xlim=c(0,10),xlab='N prey',main=expression('Without (C,D) correlations'))
   }
   else {lines(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
   lines(Nprey,C*Nprey/(D+Nprey),col=alpha('red',1.0))
@@ -382,7 +383,7 @@ Clist = out2$BUGSoutput$sims.array[,,'C']
 Dlist = out2$BUGSoutput$sims.array[,,'D']
 n = length(Clist)
 ndens = 100
-Nprey <- seq(1,20,length=ndens) #density index
+Nprey <- seq(0,20,length=ndens) #density index
 FRstoch = matrix(NA,nrow = n, ncol = ndens)
 
 for (i in 1:n){
@@ -390,7 +391,7 @@ for (i in 1:n){
   {
     FRstoch[i,dens] = Clist[i]*Nprey[dens]/(Dlist[i]+Nprey[dens])
   }
-  if (i == 1){plot(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Functional response',ylim=c(0,20),xlim=c(1,10),xlab='N prey',main='With (C,D) correlations')
+  if (i == 1){plot(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Functional response',ylim=c(0,20),xlim=c(0,10),xlab='N prey',main=expression('With (C,D) correlations'))
   }
   else {lines(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
   lines(Nprey,C*Nprey/(D+Nprey),col=alpha('red',1.0))
@@ -405,7 +406,7 @@ for (i in 1:n){
   {
     FRstoch[i,dens] = Clist[i]*Nprey[dens]/(Dlist[i]+Nprey[dens])
   }
-  if (i == 1){plot(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Functional response',ylim=c(0,20),xlim=c(1,10),xlab='N prey',main='Without (C,D) correlations')
+  if (i == 1){plot(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Functional response',ylim=c(0,20),xlim=c(0,10),xlab='N prey',main=expression('Without (C,D) correlations'))
   }
   else {lines(Nprey,FRstoch[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
   lines(Nprey,C*Nprey/(D+Nprey),col=alpha('red',1.0))
@@ -437,7 +438,7 @@ for (i in 1:n){
   {
     preyDD[i,dens] = exp(rlist[i])/(1+Nprey[dens]*gammalist[i])
   }
-  if (i == 1){plot(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Prey growth rate',ylim=c(-1,6),xlim=c(1,50),xlab='N prey',main='With (r,gamma) correlations')
+  if (i == 1){plot(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Prey growth rate',ylim=c(-1,6),xlim=c(1,50),xlab='N prey',main=expression('With (r,'~gamma ~') correlations'))
   }
   else {lines(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
   lines(Nprey,exp(rmax_V)/(1+gamma*Nprey),col=alpha('red',1.0))
@@ -451,7 +452,7 @@ for (i in 1:n){
   {
     preyDD[i,dens] = exp(rlist[i])/(1+Nprey[dens]*gammalist[i])
   }
-  if (i == 1){plot(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Prey growth rate',ylim=c(-1,6),xlim=c(1,50),xlab='N prey',main='Without (r,gamma) correlations')
+  if (i == 1){plot(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Prey growth rate',ylim=c(-1,6),xlim=c(1,50),xlab='N prey',main=expression('Without (r,'~gamma ~') correlations'))
   }
   else {lines(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
   lines(Nprey,exp(rmax_V)/(1+gamma*Nprey),col=alpha('red',1.0))
@@ -472,7 +473,7 @@ for (i in 1:n){
   {
     preyDD[i,dens] = exp(rlist[i])/(1+Nprey[dens]*gammalist[i])
   }
-  if (i == 1){plot(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Prey growth rate',ylim=c(-1,6),xlim=c(1,50),xlab='N prey',main='With (r,gamma) correlations')
+  if (i == 1){plot(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Prey growth rate',ylim=c(-1,6),xlim=c(1,50),xlab='N prey',main=expression('With (r,'~gamma ~') correlations'))
   }
   else {lines(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
   lines(Nprey,exp(rmax_V)/(1+gamma*Nprey),col=alpha('red',1.0))
@@ -486,7 +487,7 @@ for (i in 1:n){
   {
     preyDD[i,dens] = exp(rlist[i])/(1+Nprey[dens]*gammalist[i])
   }
-  if (i == 1){plot(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Prey growth rate',ylim=c(-1,6),xlim=c(1,50),xlab='N prey',main='Without (r,gamma) correlations')
+  if (i == 1){plot(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05),ylab='Prey growth rate',ylim=c(-1,6),xlim=c(1,50),xlab='N prey',main=expression('Without (r,'~gamma ~') correlations'))
   }
   else {lines(Nprey,preyDD[i,],type='l',lwd=0.5,col=alpha('black',0.05))}
   lines(Nprey,exp(rmax_V)/(1+gamma*Nprey),col=alpha('red',1.0))
