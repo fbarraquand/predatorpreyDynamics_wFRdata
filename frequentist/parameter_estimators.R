@@ -80,27 +80,27 @@ if(is(p_opt, 'try-error'))
 
 pdf(file = "Estimators_L-BFGS-B_perturbedFP.pdf")
 par(mfrow=c(2,2))
-hist(C_est,breaks=30,xlim=c(0,60))
+hist(C_est,breaks=30,xlim=c(0,60),xlab="Estimated C",main = "With KR data")
 abline(v=C,col="red",lwd=2)
-hist(D_est,breaks=30,xlim=c(0,60))
+hist(D_est,breaks=30,xlim=c(0,60),xlab="Estimated D",main = "With KR data")
 abline(v=D,col="red",lwd=2)
 
-hist(C_est_woutFR,breaks=30,xlim=c(0,60))
+hist(C_est_woutFR,breaks=30,xlim=c(0,60),xlab="Estimated C",main = "Without KR data")
 abline(v=C,col="red",lwd=2)
-hist(D_est_woutFR,breaks=30,xlim=c(0,60))
+hist(D_est_woutFR,breaks=30,xlim=c(0,60),xlab="Estimated D",main = "Without KR data")
 abline(v=D,col="red",lwd=2)
 dev.off()
 
 pdf(file = "Estimators_L-BFGS-B_perturbedFP_zoom.pdf")
 par(mfrow=c(2,2))
-hist(C_est,breaks=30,xlim=c(0,10))
+hist(C_est,breaks=30,xlim=c(0,10),xlab="Estimated C",main = "With KR data")
 abline(v=C,col="red",lwd=2)
-hist(D_est,breaks=30,xlim=c(0,5))
+hist(D_est,breaks=30,xlim=c(0,5),xlab="Estimated D",main = "With KR data")
 abline(v=D,col="red",lwd=2)
 
-hist(C_est_woutFR,breaks=30,xlim=c(0,10))
+hist(C_est_woutFR,breaks=30,xlim=c(0,10),xlab="Estimated C",main = "Without KR data")
 abline(v=C,col="red",lwd=2)
-hist(D_est_woutFR,breaks=30,xlim=c(0,5))
+hist(D_est_woutFR,breaks=30,xlim=c(0,5),xlab="Estimated D",main = "Without KR data")
 abline(v=D,col="red",lwd=2)
 dev.off()
 
@@ -108,7 +108,8 @@ C_est
 D_est
 C_est_woutFR
 D_est_woutFR
-
+results = cbind(C_est,D_est,C_est_woutFR,D_est_woutFR)
+write.csv(results,file="CD_estimates_FP.csv")
 
 #######################################################################################
 #### ------------------- Now dataset 2 - noisy limit cycles ---------------------- ####
@@ -183,30 +184,29 @@ hist(C_est_woutFR)
 hist(D_est_woutFR)
 
 
-
 pdf(file = "Estimators_L-BFGS-B_noisyLC.pdf")
 par(mfrow=c(2,2))
-hist(C_est,breaks=30,xlim=c(0,20))
+hist(C_est,breaks=30,xlim=c(0,20),xlab="Estimated C",main = "With KR data")
 abline(v=C,col="red",lwd=2)
-hist(D_est,breaks=30,xlim=c(0,5))
+hist(D_est,breaks=30,xlim=c(0,5),xlab="Estimated D",main = "With KR data")
 abline(v=D,col="red",lwd=2)
 
-hist(C_est_woutFR,breaks=30,xlim=c(0,20))
+hist(C_est_woutFR,breaks=30,xlim=c(0,20),xlab="Estimated C",main = "Without KR data")
 abline(v=C,col="red",lwd=2)
-hist(D_est_woutFR,breaks=30,xlim=c(0,5))
+hist(D_est_woutFR,breaks=30,xlim=c(0,5),xlab="Estimated D",main = "Without KR data")
 abline(v=D,col="red",lwd=2)
 dev.off()
 
 pdf(file = "Estimators_L-BFGS-B_noisyLC_zoom.pdf")
 par(mfrow=c(2,2))
-hist(C_est,breaks=30,xlim=c(14,16))
+hist(C_est,breaks=30,xlim=c(14,16),xlab="Estimated C",main = "With KR data")
 abline(v=C,col="red",lwd=2)
-hist(D_est,breaks=30,xlim=c(0,1))
+hist(D_est,breaks=30,xlim=c(0,1),xlab="Estimated D",main = "With KR data")
 abline(v=D,col="red",lwd=2)
 
-hist(C_est_woutFR,breaks=30,xlim=c(14,16))
+hist(C_est_woutFR,breaks=30,xlim=c(14,16),xlab="Estimated C",main = "Without KR data")
 abline(v=C,col="red",lwd=2)
-hist(D_est_woutFR,breaks=30,xlim=c(0,1))
+hist(D_est_woutFR,breaks=30,xlim=c(0,1),xlab="Estimated D",main = "Without KR data")
 abline(v=D,col="red",lwd=2)
 dev.off()
 
@@ -214,3 +214,5 @@ C_est
 D_est
 C_est_woutFR
 D_est_woutFR
+results = cbind(C_est,D_est,C_est_woutFR,D_est_woutFR)
+write.csv(results,file="CD_estimates_LC.csv")
