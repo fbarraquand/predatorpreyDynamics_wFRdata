@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4281411.svg)](https://doi.org/10.5281/zenodo.4281411)
+
 # Fitting stochastic predator-prey models using both population density and kill rate data
 The code provided here fits dynamic predator-prey models to data, contrasting cases where we have access to auxiliary kill rate data vs cases where we do not. The predator kill rate (KR), together with prey density N, constitutes the functional response KR = g(N). Here we make the assumption that the kill rate is subjected to process noise (i.e., random temporal variability) rather than observational error. Companion code to [our paper with the same title](https://arxiv.org/abs/1904.02145)
 
